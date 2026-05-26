@@ -8,7 +8,7 @@
 
 ## 🚀 Overview
 
-This application is deployed to **GitHub Pages** at: https://miguelti.github.io/local-time-blocking/
+This application is deployed to **GitHub Pages** at: https://bguarienti.github.io/build-together/
 
 The deployment process is **automatic** and does **NOT require manual workflow creation or interaction**.
 
@@ -52,7 +52,7 @@ gh-pages/
 1. **Repository Remote**: Must point to GitHub HTTPS URL
    ```bash
    git remote -v
-   # Should show: origin https://github.com/miguelTI/local-time-blocking.git
+   # Should show: origin https://github.com/bguarienti/build-together.git
    ```
 
 2. **npm Packages**: Install all dependencies
@@ -82,7 +82,7 @@ gh-pages/
 
 3. **Verify Deployment**:
    - Wait 1-2 minutes for GitHub to process
-   - Visit: https://miguelti.github.io/local-time-blocking/
+   - Visit: https://bguarienti.github.io/build-together/
    - Check browser console for any errors
 
 ### Verifying gh-pages Branch Contents
@@ -173,7 +173,7 @@ git push origin gh-pages
 git remote -v
 
 # If it points to something other than github.com:
-git remote set-url origin https://github.com/miguelTI/local-time-blocking.git
+git remote set-url origin https://github.com/bguarienti/build-together.git
 
 # Try deploy again
 npm run deploy
@@ -186,7 +186,7 @@ npm run deploy
 **Solution**:
 - Wait 2-3 minutes
 - Clear browser cache (Ctrl+Shift+Delete)
-- Check the live URL: https://miguelti.github.io/local-time-blocking/
+- Check the live URL: https://bguarienti.github.io/build-together/
 - If still not updated, check local `dist/` was built correctly
 
 ### Problem: Live site shows old version
@@ -277,7 +277,7 @@ When implementing a feature per PLANS.md:
 git remote -v
 
 # Update remote URL if needed
-git remote set-url origin https://github.com/miguelTI/local-time-blocking.git
+git remote set-url origin https://github.com/bguarienti/build-together.git
 
 # Build application
 npm run build
