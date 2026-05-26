@@ -5,13 +5,16 @@ Um sistema web completo para organização de tarefas com time blocking e agenda
 ## 🎯 Features
 
 - **Gerenciamento de Projetos**: Crie e organize projetos com cores personalizadas
-- **Tarefas com Rastreamento**: Adicione tarefas a projetos ou deixe "ofensoras" (sem projeto)
+- **Tarefas com Estados**: Cada tarefa tem uma situação — aberta, agendada, concluída ou cancelada
 - **Tipos de Tarefa Configuráveis**: Crie tipos personalizados (Bug, Feature, Refactor, etc) e classifique suas tarefas
 - **Calendário Semanal**: Visualize e organize suas tarefas em um calendário semanal interativo
-- **Drag & Drop**: Agende tarefas arrastando-as para o calendário
-- **Replanejamento**: Mude a data/hora de tarefas já agendadas
-- **Conclusão com Rastreamento**: Marque tarefas como concluídas com tempo gasto
-- **Cancelamento**: Cancele tarefas quando necessário
+- **Drag & Drop**: Agende tarefas arrastando-as para o calendário; replaneje arrastando blocos já agendados
+- **Ações no Calendário**: Clique em qualquer tarefa agendada para abrir um modal com ações contextuais (concluir, cancelar, desagendar, reabrir ou deletar)
+- **Tarefas Inativas Visíveis**: Tarefas concluídas e canceladas continuam no calendário, diferenciadas visualmente (opacas, ícones de check/ban) para manter o histórico da semana
+- **Painel Minimizável**: A faixa de "Tarefas abertas" no calendário pode ser minimizada para liberar espaço
+- **Conclusão com Rastreamento**: Marque tarefas como concluídas informando tempo gasto (em horas)
+- **Reabertura**: Reabra tarefas concluídas ou canceladas para continuar trabalhando
+- **Cancelamento**: Cancele tarefas quando necessário, mantendo o registro
 - **Dashboard de Métricas**: Visualize estatísticas de tempo gasto, tarefas concluídas, canceladas, etc.
 - **Métricas por Tipo**: Veja análise de horas gastas separadas por tipo de tarefa
 - **Exportação de Dados**: Exporte todos seus dados em JSON para backup
@@ -40,10 +43,11 @@ npm run deploy
 1. **Configure Tipos de Tarefa** (opcional): Vá para a aba "🏷️ Tipos" e crie tipos personalizados (Bug, Feature, etc)
 2. **Crie Projetos**: Vá para a aba "📁 Projetos" no sidebar e crie seus projetos
 3. **Crie Tarefas**: Na aba "✓ Tarefas", adicione tarefas associadas aos projetos (e escolha um tipo se desejar)
-4. **Agende no Calendário**: Arraste tarefas do sidebar para o calendário na data e hora desejadas
+4. **Agende no Calendário**: Arraste tarefas do painel superior para o calendário na data e hora desejadas
 5. **Replaneje**: Se precisar mudar, arraste a tarefa agendada para um novo horário
-6. **Marque como Concluída**: Clique no ✓ da tarefa para marcar como concluída (informando tempo gasto)
-7. **Acompanhe Métricas**: Vá para a aba "Métricas" para ver suas estatísticas (por projeto e por tipo de tarefa)
+6. **Gerencie pelo Calendário**: Clique em qualquer tarefa agendada para abrir o modal de ações e concluir, cancelar, desagendar, reabrir ou deletar
+7. **Gerencie pela Lista**: Na aba "Tarefas", use os botões de ação na tabela para concluir, cancelar, reabrir ou deletar
+8. **Acompanhe Métricas**: Vá para a aba "Métricas" para ver suas estatísticas (por projeto e por tipo de tarefa)
 
 ## 🛠️ Stack Técnico
 
@@ -119,11 +123,21 @@ Os dados são persistidos em `localStorage` com a chave `timeblocking-app-v1`.
 }
 ```
 
+## 📊 Estados das Tarefas
+
+| Estado | Descrição | Ações disponíveis |
+|--------|-----------|-------------------|
+| **Aberta** | Criada, ainda não agendada | Agendar, Concluir, Cancelar, Deletar |
+| **Agendada** | No calendário com horário definido | Replanejar, Concluir, Cancelar, Desagendar, Deletar |
+| **Concluída** | Finalizada com tempo gasto registrado | Reabrir, Deletar |
+| **Cancelada** | Descartada, mantida para histórico | Reabrir, Deletar |
+
 ## 📊 Métricas
 
 O dashboard de métricas mostra:
 - **Por Projeto**: Tempo gasto total, tarefas concluídas/canceladas/abertas/agendadas, replanejamentos
 - **Tarefas Ofensoras**: Tarefas sem projeto associado
+- **Por Tipo**: Horas gastas separadas por tipo de tarefa
 
 ## 🔄 Exportação
 
@@ -134,10 +148,13 @@ Arquivo gerado: `timeblocking-export-YYYY-MM-DD.json`
 ## ✅ Checklist MVP
 
 - ✅ Gerenciamento de projetos e tarefas
+- ✅ Tarefas com estados (aberta, agendada, concluída, cancelada)
 - ✅ Calendário semanal com visualização de tarefas
 - ✅ Drag & drop para agendar/replanear
-- ✅ Marcar tarefas como concluídas
-- ✅ Cancelar tarefas
+- ✅ Ações contextuais no calendário (modal com concluir/cancelar/desagendar/reabrir/deletar)
+- ✅ Tarefas concluídas/canceladas diferenciadas visualmente no calendário
+- ✅ Painel de tarefas abertas minimizável no calendário
+- ✅ Reabrir tarefas concluídas/canceladas
 - ✅ Dashboard de métricas
 - ✅ Exportação de dados
 - ✅ Persistência em localStorage
