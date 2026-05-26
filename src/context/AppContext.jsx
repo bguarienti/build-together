@@ -117,7 +117,7 @@ export function AppContextProvider({ children }) {
   }, [state.tasks]);
 
   const getOffenderTasks = useCallback(() => {
-    return state.tasks.filter((t) => t.ativo && t.projeto_id === null && t.estado === 'aberta');
+    return state.tasks.filter((t) => t.ativo && t.projeto_id === null && (t.estado === 'aberta' || t.estado === 'agendada'));
   }, [state.tasks]);
 
   const addSchedule = useCallback((tarefa_id, data, hora_inicio, hora_fim) => {
