@@ -1,11 +1,14 @@
 import { useMemo, useState } from "react";
-import { Plus, Trash2, CheckCircle2, XCircle, AlertTriangle, X } from "lucide-react";
+import { Plus, Trash2, CheckCircle2, XCircle, AlertTriangle, X, CalendarIcon } from "lucide-react";
+import { format } from "date-fns";
 import { useAppContext } from "@/hooks/useAppContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
@@ -16,6 +19,8 @@ import {
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
+import { formatDate, parseTime, minutesToTime, SLOT_MINUTES } from "@/utils/date";
+import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
 type StateFilter = "all" | "aberta" | "agendada" | "concluída" | "cancelada";
