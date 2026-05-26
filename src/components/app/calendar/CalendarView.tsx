@@ -122,102 +122,119 @@ export function CalendarView() {
   return (
     <DragDropContext onDragEnd={handleDragEnd}>
       <div className="flex h-[calc(100vh-6.5rem)] flex-col gap-4">
-        {/* Faixa horizontal de tarefas abertas */}
-        <section className={cn("flex flex-col rounded-lg border bg-card transition-all", isMinimized ? "shrink-0" : "")}>
-          <div className="flex items-center justify-between gap-3 border-b px-3 py-2">
-            <div>
-              <p className="text-sm font-semibold">Tarefas abertas</p>
-              <p className="text-[11px] text-muted-foreground">
-                {openTasks.length} para agendar · arraste para o calendário ou clique num horário vazio
-              </p>
-            </div>
-            <Button variant="ghost" size="sm" onClick={() => setIsMinimized((v) => !v)} className="h-7 w-7 p-0">
-              {isMinimized ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
-            </Button>
-          </div>
-          {!isMinimized && (
-            <Droppable droppableId="tasks-list" type="SCHEDULE" direction="horizontal">
-              {(provided, snapshot) => (
-                <ScrollArea className="w-full">
-                  <div
-                    ref={provided.innerRef}
-                    {...provided.droppableProps}
-                    className={cn(
-                      "flex gap-2 p-3",
-                      snapshot.isDraggingOver && "bg-primary/5"
-                    )}
-                  >
-                    {openTasks.length === 0 ? (
-                      <p className="w-full rounded-md border border-dashed py-4 text-center text-xs text-muted-foreground">
-                        Sem tarefas abertas
-                      </p>
-                    ) : (
-                      openTasks.map((task: any, index: number) => {
-                        const project = projects.find((p: any) => p.id === task.projeto_id);
-                        const type = task.task_type_id ? taskTypes.find((t: any) => t.id === task.task_type_id) : null;
-                        const isOffender = !task.projeto_id;
-                        return (
-                          <Draggable key={task.id} draggableId={task.id} index={index}>
-                            {(p, snap) => (
+        {/* Grid de calendário */}
+        <div className="flex min-h-0 flex-1 flex-col rounded-lg border bg-card">
+          <div className="flex items-center justify-between gap-2 border-b p-3">
+            <Droppable droppableId="tasks-list" type="SCHEDULE" direction="horizontal" isDropDisabled>
+              {(provided) => (
+                <div
+                  ref={provided.innerRef}
+                  {...provided.droppableProps}
+                  className="flex min-w-0 flex-1 items-center gap-2"
+                >
+                  {openTasks.length === 0 ? (
+                    <span className="text-xs text-muted-foreground">Sem tarefas abertas</span>
+                  ) : (
+                    openTasks.map((task: any, index: number) => {
+                      const project = projects.find((p: any) => p.id === task.projeto_id);
+                      const type = task.task_type_id ? taskTypes.find((t: any) => t.id === task.task_type_id) : null;
+                      const isOffender = !task.projeto_id;
+                      const hidden = index > 0;
+                      return (
+                        <Draggable key={task.id} draggableId={task.id} index={index}>
+                          {(p, snap) => {
+                            const chip = (
                               <div
                                 ref={p.innerRef}
                                 {...p.draggableProps}
                                 {...p.dragHandleProps}
                                 className={cn(
-                                  "group flex w-56 shrink-0 items-start gap-2 rounded-md border bg-background p-2 text-sm shadow-sm transition",
+                                  "group flex max-w-[260px] shrink-0 items-center gap-1.5 rounded-md border bg-background px-2 py-1 text-xs shadow-sm transition",
                                   snap.isDragging && "ring-2 ring-primary",
+                                  isOffender && "border-destructive/40",
+                                  hidden && !snap.isDragging && "hidden"
+                                )}
+                                style={p.draggableProps.style}
+                              >
+                                <div className="h-3 w-1 rounded" style={{ backgroundColor: getProjectColor(task.projeto_id) }} />
+                                <GripVertical className="h-3 w-3 text-muted-foreground" />
+                                <span className="truncate font-medium">{task.nome}</span>
+                                {project && <Badge variant="outline" className="h-4 px-1 text-[10px]">{project.nome}</Badge>}
+                                {type && (
+                                  <Badge style={{ backgroundColor: type.cor }} className="h-4 px-1 text-[10px] text-white">
+                                    {type.nome}
+                                  </Badge>
+                                )}
+                                {isOffender && <AlertTriangle className="h-3 w-3 text-destructive" />}
+                              </div>
+                            );
+                            return chip;
+                          }}
+                        </Draggable>
+                      );
+                    })
+                  )}
+                  {provided.placeholder}
+                  {openTasks.length > 1 && (
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button variant="outline" size="sm" className="h-7 shrink-0 px-2">
+                          <Plus className="mr-1 h-3.5 w-3.5" />
+                          {openTasks.length - 1}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent align="start" className="w-80 p-2">
+                        <p className="mb-2 px-1 text-[11px] text-muted-foreground">
+                          Arraste para o calendário
+                        </p>
+                        <div className="max-h-72 space-y-1 overflow-y-auto">
+                          {openTasks.slice(1).map((task: any) => {
+                            const project = projects.find((p: any) => p.id === task.projeto_id);
+                            const type = task.task_type_id ? taskTypes.find((t: any) => t.id === task.task_type_id) : null;
+                            const isOffender = !task.projeto_id;
+                            // Mirror chip — actual Draggable lives in the topbar row (hidden) and becomes visible only while dragging.
+                            // Clicking here triggers a synthetic drag is not trivial; instead we expose a visual list and the user drags from the chip area.
+                            return (
+                              <div
+                                key={task.id}
+                                className={cn(
+                                  "flex items-center gap-1.5 rounded-md border bg-background px-2 py-1 text-xs",
                                   isOffender && "border-destructive/40"
                                 )}
                               >
-                                <div className="w-1 self-stretch rounded" style={{ backgroundColor: getProjectColor(task.projeto_id) }} />
-                                <GripVertical className="mt-0.5 h-3.5 w-3.5 text-muted-foreground opacity-0 transition group-hover:opacity-100" />
-                                <div className="min-w-0 flex-1 space-y-1">
-                                  <p className="truncate font-medium leading-tight">{task.nome}</p>
-                                  <div className="flex flex-wrap items-center gap-1">
-                                    {project && <Badge variant="outline" className="h-4 px-1 text-[10px]">{project.nome}</Badge>}
-                                    {type && (
-                                      <Badge style={{ backgroundColor: type.cor }} className="h-4 px-1 text-[10px] text-white">
-                                        {type.nome}
-                                      </Badge>
-                                    )}
-                                    {isOffender && (
-                                      <span className="flex items-center gap-0.5 text-[10px] text-destructive">
-                                        <AlertTriangle className="h-3 w-3" /> sem projeto
-                                      </span>
-                                    )}
-                                  </div>
-                                </div>
+                                <div className="h-3 w-1 rounded" style={{ backgroundColor: getProjectColor(task.projeto_id) }} />
+                                <span className="flex-1 truncate font-medium">{task.nome}</span>
+                                {project && <Badge variant="outline" className="h-4 px-1 text-[10px]">{project.nome}</Badge>}
+                                {type && (
+                                  <Badge style={{ backgroundColor: type.cor }} className="h-4 px-1 text-[10px] text-white">
+                                    {type.nome}
+                                  </Badge>
+                                )}
                               </div>
-                            )}
-                          </Draggable>
-                        );
-                      })
-                    )}
-                    {provided.placeholder}
-                  </div>
-                  <ScrollBar orientation="horizontal" />
-                </ScrollArea>
+                            );
+                          })}
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+                  )}
+                </div>
               )}
             </Droppable>
-          )}
-        </section>
 
-        {/* Grid de calendário */}
-        <div className="flex min-h-0 flex-1 flex-col rounded-lg border bg-card">
-          <div className="flex items-center justify-between gap-2 border-b p-3">
-            <Button variant="outline" size="sm" onClick={() => setCurrentWeek(addDays(currentWeek, -7))}>
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <div className="flex items-center gap-2">
-              <p className="text-sm font-semibold">{getWeekRange(currentWeek)}</p>
+            <div className="flex shrink-0 items-center gap-1">
+              <Button variant="outline" size="sm" onClick={() => setCurrentWeek(addDays(currentWeek, -7))}>
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <p className="px-1 text-sm font-semibold">{getWeekRange(currentWeek)}</p>
               <Button variant="ghost" size="sm" onClick={() => setCurrentWeek(new Date())}>
                 Hoje
               </Button>
+              <Button variant="outline" size="sm" onClick={() => setCurrentWeek(addDays(currentWeek, 7))}>
+                <ChevronRight className="h-4 w-4" />
+              </Button>
             </div>
-            <Button variant="outline" size="sm" onClick={() => setCurrentWeek(addDays(currentWeek, 7))}>
-              <ChevronRight className="h-4 w-4" />
-            </Button>
           </div>
+
 
           <ScrollArea className="flex-1">
             <div className="grid grid-cols-[60px_repeat(7,minmax(0,1fr))]">
