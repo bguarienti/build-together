@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, CalendarDays, ListTodo, FolderKanban, Tags, BarChart3, Clock } from "lucide-react";
+import { LayoutDashboard, CalendarDays, ListTodo, FolderKanban, Tags, BarChart3, Clock, ClipboardList } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -18,6 +18,7 @@ const items = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard },
   { title: "Calendário", url: "/calendar", icon: CalendarDays },
   { title: "Tarefas", url: "/tasks", icon: ListTodo },
+  { title: "TODOs", url: "/todos", icon: ClipboardList },
   { title: "Projetos", url: "/projects", icon: FolderKanban },
   { title: "Tipos", url: "/types", icon: Tags },
   { title: "Métricas", url: "/metrics", icon: BarChart3 },
