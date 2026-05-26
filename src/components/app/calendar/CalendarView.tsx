@@ -20,6 +20,8 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { Textarea } from "@/components/ui/textarea";
+import { HoursMinutesInput, toDecimalHours } from "@/components/app/HoursMinutesInput";
 
 type NewSlot = { date: string; startMin: number } | null;
 
@@ -27,7 +29,7 @@ type NewSlot = { date: string; startMin: number } | null;
 const SLOT_H = 16;
 
 export function CalendarView() {
-  const { state, getTasks, getProjects, getTaskTypes, addTask, addSchedule, rescheduleTask, unscheduleTask, completeTask, cancelTask, reopenTask, deleteTask } = useAppContext();
+  const { state, getTasks, getProjects, getTaskTypes, addTask, addSchedule, rescheduleTask, unscheduleTask, completeTask, cancelTask, reopenTask, deleteTask, updateTask } = useAppContext();
   const [currentWeek, setCurrentWeek] = useState<Date>(new Date());
   const [newSlot, setNewSlot] = useState<NewSlot>(null);
   const [name, setName] = useState("");
@@ -37,7 +39,9 @@ export function CalendarView() {
   const [isMinimized, setIsMinimized] = useState(false);
   const [actionTask, setActionTask] = useState<any | null>(null);
   const [completeOpen, setCompleteOpen] = useState(false);
-  const [tempoGasto, setTempoGasto] = useState("");
+  const [tempoH, setTempoH] = useState("");
+  const [tempoM, setTempoM] = useState("");
+  const [notes, setNotes] = useState("");
 
   const weekDates = getWeekDates(currentWeek);
   const projects = getProjects();
