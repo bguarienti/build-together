@@ -140,5 +140,18 @@
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
+    cursor: default;
+  }
+
+  input,
+  textarea,
+  [contenteditable="true"] {
+    cursor: text;
+  }
+
+  button,
+  a,
+  [role="button"] {
+    cursor: pointer;
   }
 }
