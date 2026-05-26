@@ -1,5 +1,5 @@
-import { useMemo, useState } from "react";
-import { Plus, Trash2, CheckCircle2, XCircle, AlertTriangle, X, CalendarIcon, RotateCcw } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Plus, Trash2, CheckCircle2, XCircle, AlertTriangle, X, CalendarIcon, RotateCcw, StickyNote } from "lucide-react";
 import { format } from "date-fns";
 import { useAppContext } from "@/hooks/useAppContext";
 import { Card, CardContent } from "@/components/ui/card";
@@ -22,6 +22,8 @@ import {
 import { formatDate, parseTime, minutesToTime, SLOT_MINUTES } from "@/utils/date";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { Textarea } from "@/components/ui/textarea";
+import { HoursMinutesInput, toDecimalHours, formatHoursMinutes } from "@/components/app/HoursMinutesInput";
 
 type StateFilter = "all" | "aberta" | "agendada" | "concluída" | "cancelada";
 
@@ -33,7 +35,7 @@ const STATE_VARIANT: Record<string, { label: string; className: string }> = {
 };
 
 export function TasksView() {
-  const { getTasks, getProjects, getTaskTypes, addTask, addSchedule, deleteTask, completeTask, cancelTask, reopenTask } = useAppContext();
+  const { getTasks, getProjects, getTaskTypes, addTask, addSchedule, deleteTask, completeTask, cancelTask, reopenTask, updateTask } = useAppContext();
   const tasks = getTasks();
   const projects = getProjects();
   const types = getTaskTypes();
@@ -49,7 +51,14 @@ export function TasksView() {
   const [startTime, setStartTime] = useState<string>("09:00");
   const [durationMin, setDurationMin] = useState<number>(60);
   const [completeTarget, setCompleteTarget] = useState<any | null>(null);
-  const [tempoGasto, setTempoGasto] = useState("");
+  const [tempoH, setTempoH] = useState("");
+  const [tempoM, setTempoM] = useState("");
+  const [notesTarget, setNotesTarget] = useState<any | null>(null);
+  const [notes, setNotes] = useState("");
+
+  useEffect(() => {
+    setNotes(notesTarget?.anotacoes ?? "");
+  }, [notesTarget?.id]);
 
   const timeOptions = useMemo(() => {
     const out: string[] = [];
@@ -97,12 +106,12 @@ export function TasksView() {
   const handleComplete = () => {
     if (!completeTarget) return;
     try {
-      const t = parseFloat(tempoGasto);
-      if (!t || t <= 0) throw new Error("Tempo gasto deve ser positivo");
+      const t = toDecimalHours(tempoH, tempoM);
       completeTask(completeTarget.id, t);
       toast.success("Tarefa concluída");
       setCompleteTarget(null);
-      setTempoGasto("");
+      setTempoH("");
+      setTempoM("");
     } catch (err: any) {
       toast.error(err.message);
     }
