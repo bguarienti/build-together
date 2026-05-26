@@ -2,7 +2,11 @@ import { useState } from "react";
 import { DragDropContext, Droppable, Draggable, type DropResult } from "@hello-pangea/dnd";
 import { ChevronLeft, ChevronRight, X, GripVertical, AlertTriangle, Plus } from "lucide-react";
 import { useAppContext } from "@/hooks/useAppContext";
-import { getWeekDates, getWeekRange, addDays, HOURS, formatTime, formatDate, formatDateBR, getDayNameShort, isToday } from "@/utils/date";
+import {
+  getWeekDates, getWeekRange, addDays, SLOTS, SLOT_MINUTES,
+  formatTime, formatDate, formatDateBR, getDayNameShort, isToday,
+  parseTime, minutesToTime,
+} from "@/utils/date";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -17,7 +21,10 @@ import {
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
-type NewSlot = { date: string; hour: number } | null;
+type NewSlot = { date: string; startMin: number } | null;
+
+// height per 15-min slot, in px
+const SLOT_H = 16;
 
 export function CalendarView() {
   const { state, getTasks, getProjects, getTaskTypes, addTask, addSchedule, rescheduleTask, unscheduleTask } = useAppContext();
@@ -26,7 +33,7 @@ export function CalendarView() {
   const [name, setName] = useState("");
   const [projectId, setProjectId] = useState<string>("none");
   const [typeId, setTypeId] = useState<string>("none");
-  const [duration, setDuration] = useState<number>(1);
+  const [durationMin, setDurationMin] = useState<number>(60);
 
   const weekDates = getWeekDates(currentWeek);
   const projects = getProjects();
@@ -36,12 +43,12 @@ export function CalendarView() {
   const getProjectColor = (projectId: string | null) =>
     projects.find((p: any) => p.id === projectId)?.cor || "hsl(var(--muted-foreground))";
 
-  const openNewSlot = (date: string, hour: number) => {
-    setNewSlot({ date, hour });
+  const openNewSlot = (date: string, startMin: number) => {
+    setNewSlot({ date, startMin });
     setName("");
     setProjectId("none");
     setTypeId("none");
-    setDuration(1);
+    setDurationMin(60);
   };
 
   const submitNewSlot = (e: React.FormEvent) => {
@@ -49,8 +56,9 @@ export function CalendarView() {
     if (!newSlot) return;
     try {
       const task = addTask(name.trim(), projectId === "none" ? null : projectId, typeId === "none" ? null : typeId);
-      const endHour = Math.min(newSlot.hour + Math.max(1, Math.round(duration)), 24);
-      addSchedule(task.id, newSlot.date, formatTime(newSlot.hour), formatTime(endHour));
+      const start = newSlot.startMin;
+      const end = Math.min(start + Math.max(SLOT_MINUTES, durationMin), 24 * 60);
+      addSchedule(task.id, newSlot.date, minutesToTime(start), minutesToTime(end));
       toast.success("Tarefa criada e agendada");
       setNewSlot(null);
     } catch (err: any) {
@@ -62,19 +70,22 @@ export function CalendarView() {
     const { source, destination, draggableId } = result;
     if (!destination || !destination.droppableId.startsWith("timeslot-")) return;
 
+    // droppableId: timeslot-YYYY-MM-DD-<startMin>
     const parts = destination.droppableId.split("-");
     const date = `${parts[1]}-${parts[2]}-${parts[3]}`;
-    const hour = parseInt(parts[4], 10);
-    const hora_inicio = formatTime(hour);
-    const hora_fim = formatTime(hour + 1);
+    const startMin = parseInt(parts[4], 10);
 
     try {
       if (source.droppableId === "tasks-list") {
-        addSchedule(draggableId, date, hora_inicio, hora_fim);
+        // default 1h for dragged open task
+        addSchedule(draggableId, date, minutesToTime(startMin), minutesToTime(startMin + 60));
         toast.success("Tarefa agendada");
       } else if (source.droppableId.startsWith("timeslot-")) {
-        const [, tarefa_id] = draggableId.split("_");
-        rescheduleTask(tarefa_id, date, hora_inicio, hora_fim);
+        // preserve original duration
+        const [, tarefa_id, scheduleId] = draggableId.split("_");
+        const sch = state.schedules.find((s: any) => s.id === scheduleId && s.ativo);
+        const dur = sch ? parseTime(sch.hora_fim) - parseTime(sch.hora_inicio) : 60;
+        rescheduleTask(tarefa_id, date, minutesToTime(startMin), minutesToTime(startMin + dur));
         toast.success("Tarefa replanejada");
       }
     } catch (err: any) {
@@ -199,90 +210,118 @@ export function CalendarView() {
                 );
               })}
 
-              {/* Linhas de hora */}
-              {HOURS.map((hour) => (
-                <div key={`row-${hour}`} className="contents">
-                  <div className="border-b border-r p-1 text-right text-[10px] text-muted-foreground">
-                    {formatTime(hour)}
-                  </div>
-                  {weekDates.map((date) => {
-                    const dateStr = formatDate(date);
-                    const daySchedules = state.schedules.filter(
-                      (s: any) => s.ativo && s.data === dateStr && parseInt(s.hora_inicio.split(":")[0], 10) === hour
-                    );
-                    const isEmpty = daySchedules.length === 0;
-                    return (
-                      <Droppable
-                        key={`${dateStr}-${hour}`}
-                        droppableId={`timeslot-${dateStr}-${hour}`}
-                        type="SCHEDULE"
-                      >
-                        {(provided, snapshot) => (
-                          <div
-                            ref={provided.innerRef}
-                            {...provided.droppableProps}
-                            onClick={() => isEmpty && openNewSlot(dateStr, hour)}
-                            className={cn(
-                              "group/slot relative min-h-[56px] border-b border-r p-1 transition-colors",
-                              isEmpty && "cursor-pointer hover:bg-primary/5",
-                              snapshot.isDraggingOver && "bg-primary/10",
-                              isToday(date) && "bg-primary/[0.02]"
-                            )}
-                          >
-                            {isEmpty && (
-                              <div className="pointer-events-none flex h-full items-center justify-center opacity-0 transition group-hover/slot:opacity-100">
-                                <Plus className="h-4 w-4 text-muted-foreground" />
-                              </div>
-                            )}
-                            {daySchedules.map((s: any, idx: number) => {
-                              const task = state.tasks.find((t: any) => t.id === s.tarefa_id);
-                              if (!task) return null;
-                              const type = task.task_type_id ? taskTypes.find((tt: any) => tt.id === task.task_type_id) : null;
-                              const color = type?.cor || getProjectColor(task.projeto_id);
-                              return (
-                                <Draggable key={s.id} draggableId={`schedule_${task.id}_${s.id}`} index={idx}>
-                                  {(p, snap) => (
-                                    <div
-                                      ref={p.innerRef}
-                                      {...p.draggableProps}
-                                      {...p.dragHandleProps}
-                                      onClick={(e) => e.stopPropagation()}
-                                      className={cn(
-                                        "group mb-1 rounded-md border-l-4 bg-background p-1.5 text-[11px] shadow-sm transition",
-                                        snap.isDragging && "ring-2 ring-primary"
-                                      )}
-                                      style={{ borderLeftColor: color, ...p.draggableProps.style }}
-                                    >
-                                      <div className="flex items-start justify-between gap-1">
-                                        <div className="min-w-0 flex-1">
-                                          <p className="truncate font-medium leading-tight">{task.nome}</p>
-                                          <p className="font-mono text-[10px] text-muted-foreground">
-                                            {s.hora_inicio}–{s.hora_fim}
-                                          </p>
+              {/* Linhas de 15 minutos */}
+              {SLOTS.map(({ hour, minute }) => {
+                const startMin = hour * 60 + minute;
+                const isHourStart = minute === 0;
+                return (
+                  <div key={`row-${startMin}`} className="contents">
+                    <div
+                      className={cn(
+                        "border-r px-1 text-right text-[10px] text-muted-foreground",
+                        isHourStart ? "border-b" : "border-b border-dashed border-border/40"
+                      )}
+                      style={{ height: SLOT_H }}
+                    >
+                      {isHourStart ? formatTime(hour) : ""}
+                    </div>
+                    {weekDates.map((date) => {
+                      const dateStr = formatDate(date);
+                      // Find schedule that STARTS at this exact slot
+                      const startingHere = state.schedules.filter(
+                        (s: any) => s.ativo && s.data === dateStr && parseTime(s.hora_inicio) === startMin
+                      );
+                      // Is this slot covered by another schedule (started earlier, still running)?
+                      const isOccupied = state.schedules.some(
+                        (s: any) =>
+                          s.ativo &&
+                          s.data === dateStr &&
+                          parseTime(s.hora_inicio) < startMin &&
+                          parseTime(s.hora_fim) > startMin
+                      );
+                      const isEmpty = startingHere.length === 0 && !isOccupied;
+                      return (
+                        <Droppable
+                          key={`${dateStr}-${startMin}`}
+                          droppableId={`timeslot-${dateStr}-${startMin}`}
+                          type="SCHEDULE"
+                        >
+                          {(provided, snapshot) => (
+                            <div
+                              ref={provided.innerRef}
+                              {...provided.droppableProps}
+                              onClick={() => isEmpty && openNewSlot(dateStr, startMin)}
+                              className={cn(
+                                "group/slot relative border-r transition-colors",
+                                isHourStart ? "border-b" : "border-b border-dashed border-border/40",
+                                isEmpty && "cursor-pointer hover:bg-primary/5",
+                                snapshot.isDraggingOver && "bg-primary/10",
+                                isToday(date) && "bg-primary/[0.02]"
+                              )}
+                              style={{ height: SLOT_H }}
+                            >
+                              {startingHere.map((s: any, idx: number) => {
+                                const task = state.tasks.find((t: any) => t.id === s.tarefa_id);
+                                if (!task) return null;
+                                const type = task.task_type_id ? taskTypes.find((tt: any) => tt.id === task.task_type_id) : null;
+                                const color = type?.cor || getProjectColor(task.projeto_id);
+                                const dur = parseTime(s.hora_fim) - parseTime(s.hora_inicio);
+                                const blockH = Math.max(SLOT_H, (dur / SLOT_MINUTES) * SLOT_H) - 2;
+                                return (
+                                  <Draggable key={s.id} draggableId={`schedule_${task.id}_${s.id}`} index={idx}>
+                                    {(p, snap) => (
+                                      <div
+                                        ref={p.innerRef}
+                                        {...p.draggableProps}
+                                        {...p.dragHandleProps}
+                                        onClick={(e) => e.stopPropagation()}
+                                        className={cn(
+                                          "group absolute inset-x-0.5 z-10 overflow-hidden rounded-md border-l-4 bg-background px-1.5 py-1 text-[11px] shadow-sm transition",
+                                          snap.isDragging && "ring-2 ring-primary"
+                                        )}
+                                        style={{
+                                          top: 1,
+                                          height: snap.isDragging ? undefined : blockH,
+                                          borderLeftColor: color,
+                                          ...p.draggableProps.style,
+                                        }}
+                                      >
+                                        <div className="flex items-start justify-between gap-1">
+                                          <div className="min-w-0 flex-1">
+                                            <p className="truncate font-medium leading-tight">{task.nome}</p>
+                                            <p className="font-mono text-[10px] text-muted-foreground">
+                                              {s.hora_inicio}–{s.hora_fim}
+                                            </p>
+                                          </div>
+                                          <button
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              handleUnschedule(task.id, task.nome);
+                                            }}
+                                            className="opacity-0 transition group-hover:opacity-100"
+                                          >
+                                            <X className="h-3 w-3 text-muted-foreground hover:text-destructive" />
+                                          </button>
                                         </div>
-                                        <button
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleUnschedule(task.id, task.nome);
-                                          }}
-                                          className="opacity-0 transition group-hover:opacity-100"
-                                        >
-                                          <X className="h-3 w-3 text-muted-foreground hover:text-destructive" />
-                                        </button>
                                       </div>
-                                    </div>
-                                  )}
-                                </Draggable>
-                              );
-                            })}
-                            {provided.placeholder}
-                          </div>
-                        )}
-                      </Droppable>
-                    );
-                  })}
-                </div>
-              ))}
+                                    )}
+                                  </Draggable>
+                                );
+                              })}
+                              {isEmpty && (
+                                <div className="pointer-events-none flex h-full items-center justify-center opacity-0 transition group-hover/slot:opacity-100">
+                                  <Plus className="h-3 w-3 text-muted-foreground" />
+                                </div>
+                              )}
+                              {provided.placeholder}
+                            </div>
+                          )}
+                        </Droppable>
+                      );
+                    })}
+                  </div>
+                );
+              })}
             </div>
           </ScrollArea>
         </div>
@@ -293,7 +332,7 @@ export function CalendarView() {
           <DialogHeader>
             <DialogTitle>Nova tarefa agendada</DialogTitle>
             <DialogDescription>
-              {newSlot && `${formatDateBR(new Date(newSlot.date + "T00:00:00"))} às ${formatTime(newSlot.hour)}`}
+              {newSlot && `${formatDateBR(new Date(newSlot.date + "T00:00:00"))} às ${minutesToTime(newSlot.startMin)}`}
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={submitNewSlot} className="space-y-3">
@@ -324,16 +363,17 @@ export function CalendarView() {
               </div>
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="ns-dur">Duração (horas)</Label>
-              <Input
-                id="ns-dur"
-                type="number"
-                min={1}
-                max={12}
-                step={1}
-                value={duration}
-                onChange={(e) => setDuration(parseInt(e.target.value || "1", 10))}
-              />
+              <Label>Duração</Label>
+              <Select value={String(durationMin)} onValueChange={(v) => setDurationMin(parseInt(v, 10))}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {[15, 30, 45, 60, 75, 90, 105, 120, 150, 180, 240].map((m) => (
+                    <SelectItem key={m} value={String(m)}>
+                      {m < 60 ? `${m} min` : m % 60 === 0 ? `${m / 60} h` : `${Math.floor(m / 60)}h ${m % 60}min`}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <DialogFooter>
               <Button type="button" variant="ghost" onClick={() => setNewSlot(null)}>Cancelar</Button>

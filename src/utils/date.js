@@ -1,6 +1,26 @@
 export const HOURS = Array.from({ length: 17 }, (_, i) => i + 6);
+export const SLOT_MINUTES = 15;
+// 15-min slots from 06:00 to 22:45
+export const SLOTS = (() => {
+  const out = [];
+  for (const h of HOURS) {
+    for (let m = 0; m < 60; m += SLOT_MINUTES) out.push({ hour: h, minute: m });
+  }
+  return out;
+})();
 export const WEEKDAYS = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'];
 export const WEEKDAYS_SHORT = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab', 'Dom'];
+
+export function parseTime(hhmm) {
+  const [h, m] = String(hhmm).split(':').map(Number);
+  return h * 60 + (m || 0);
+}
+
+export function minutesToTime(total) {
+  const h = Math.floor(total / 60);
+  const m = total % 60;
+  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+}
 
 export function getMonday(date) {
   const d = new Date(date);

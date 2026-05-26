@@ -18,8 +18,12 @@ declare module "@/utils/export" {
 
 declare module "@/utils/date" {
   export const HOURS: number[];
+  export const SLOT_MINUTES: number;
+  export const SLOTS: { hour: number; minute: number }[];
   export const WEEKDAYS: string[];
   export const WEEKDAYS_SHORT: string[];
+  export function parseTime(hhmm: string): number;
+  export function minutesToTime(total: number): string;
   export function getMonday(date: Date): Date;
   export function getWeekDates(date?: Date): Date[];
   export function formatDate(date: Date | string): string;
