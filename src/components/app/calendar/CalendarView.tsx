@@ -435,7 +435,7 @@ export function CalendarView() {
       </Dialog>
 
       {/* Modal de ações para tarefa agendada */}
-      <Dialog open={!!actionTask && !completeOpen} onOpenChange={(o) => !o && setActionTask(null)}>
+      <Dialog open={!!actionTask && !completeOpen} onOpenChange={(o) => { if (!o) { setActionTask(null); setCalTodoTitle(""); setCalTodoDate(undefined); } }}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{actionTask?.nome}</DialogTitle>
@@ -460,6 +460,89 @@ export function CalendarView() {
                 maxLength={2000}
                 placeholder="Notas, contexto, links…"
               />
+            </div>
+          )}
+
+          {actionTask && (
+            <div className="space-y-2 rounded-md border bg-muted/30 p-3">
+              <div className="flex items-center gap-2 text-sm font-semibold">
+                <ClipboardList className="h-4 w-4" /> TODOs desta tarefa
+              </div>
+
+              <div className="space-y-1">
+                {getTodosByTask(actionTask.id).length === 0 && (
+                  <p className="text-xs text-muted-foreground">Nenhum TODO ainda.</p>
+                )}
+                {getTodosByTask(actionTask.id).map((td: any) => (
+                  <div key={td.id} className="flex items-center gap-2 rounded border bg-background px-2 py-1 text-sm">
+                    <button
+                      type="button"
+                      onClick={() => { completeTodo(td.id); toast.success("TODO concluído"); }}
+                      disabled={td.estado !== "aberta"}
+                      className="text-muted-foreground hover:text-emerald-600 disabled:opacity-40"
+                    >
+                      <CheckCircle2 className={cn("h-4 w-4", td.estado === "concluída" && "text-emerald-600")} />
+                    </button>
+                    <span className={cn("flex-1", td.estado === "concluída" && "line-through text-muted-foreground", td.estado === "cancelada" && "line-through text-muted-foreground italic")}>
+                      {td.titulo}
+                    </span>
+                    {td.prazo && (
+                      <span className="font-mono text-[10px] text-muted-foreground">
+                        {format(new Date(td.prazo + "T00:00:00"), "dd/MM")}
+                      </span>
+                    )}
+                    <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => { deleteTodo(td.id); }}>
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2 pt-2">
+                <Input
+                  value={calTodoTitle}
+                  onChange={(e) => setCalTodoTitle(e.target.value)}
+                  placeholder="Novo TODO..."
+                  className="h-8 flex-1 min-w-[180px]"
+                  maxLength={255}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && calTodoTitle.trim() && actionTask) {
+                      e.preventDefault();
+                      try {
+                        addTodo(actionTask.id, calTodoTitle.trim(), calTodoDate ? formatDate(calTodoDate) : null);
+                        setCalTodoTitle(""); setCalTodoDate(undefined);
+                      } catch (err: any) { toast.error(err.message); }
+                    }
+                  }}
+                />
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button type="button" variant="outline" size="sm" className="h-8">
+                      <CalendarIcon className="mr-1 h-3.5 w-3.5" />
+                      {calTodoDate ? format(calTodoDate, "dd/MM") : "Prazo"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="end">
+                    <Calendar mode="single" selected={calTodoDate} onSelect={setCalTodoDate} initialFocus className={cn("p-3 pointer-events-auto")} />
+                  </PopoverContent>
+                </Popover>
+                <Button
+                  type="button"
+                  size="sm"
+                  className="h-8"
+                  disabled={!calTodoTitle.trim()}
+                  onClick={() => {
+                    if (!actionTask) return;
+                    try {
+                      addTodo(actionTask.id, calTodoTitle.trim(), calTodoDate ? formatDate(calTodoDate) : null);
+                      setCalTodoTitle(""); setCalTodoDate(undefined);
+                      toast.success("TODO criado");
+                    } catch (err: any) { toast.error(err.message); }
+                  }}
+                >
+                  <Plus className="mr-1 h-3.5 w-3.5" /> TODO
+                </Button>
+              </div>
             </div>
           )}
 
