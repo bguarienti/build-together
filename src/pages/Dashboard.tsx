@@ -16,7 +16,7 @@ const STATE_VARIANT: Record<string, { label: string; className: string }> = {
 };
 
 export function Dashboard() {
-  const { getTasks, getProjects, getOffenderTasks, state } = useAppContext();
+  const { getTasks, getProjects, getOffenderTasks, state, getTodosByDeadline } = useAppContext();
   const tasks = getTasks();
   const projects = getProjects();
   const offenders = getOffenderTasks();
@@ -25,6 +25,8 @@ export function Dashboard() {
   const todaySchedules = state.schedules
     .filter((s: any) => s.ativo && s.data === today)
     .sort((a: any, b: any) => a.hora_inicio.localeCompare(b.hora_inicio));
+
+  const todayTodos = getTodosByDeadline(today);
 
   const stats = {
     open: tasks.filter((t: any) => t.estado === "aberta").length,
