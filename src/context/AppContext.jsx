@@ -216,9 +216,6 @@ export function AppContextProvider({ children }) {
 
     setState((prev) => ({
       ...prev,
-      schedules: prev.schedules.map((s) =>
-        s.tarefa_id === tarefa_id && s.ativo ? { ...s, ativo: false } : s
-      ),
       tasks: prev.tasks.map((t) =>
         t.id === tarefa_id
           ? {
@@ -235,9 +232,6 @@ export function AppContextProvider({ children }) {
   const cancelTask = useCallback((tarefa_id) => {
     setState((prev) => ({
       ...prev,
-      schedules: prev.schedules.map((s) =>
-        s.tarefa_id === tarefa_id && s.ativo ? { ...s, ativo: false } : s
-      ),
       tasks: prev.tasks.map((t) =>
         t.id === tarefa_id
           ? {
