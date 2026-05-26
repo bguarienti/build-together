@@ -520,6 +520,16 @@ export function AppContextProvider({ children }) {
     updateTaskType,
     deleteTaskType,
     getTaskTypes,
+    // TODOs CRUD (NOVO v1.2)
+    addTodo,
+    updateTodo,
+    deleteTodo,
+    completeTodo,
+    cancelTodo,
+    reopenTodo,
+    getTodos,
+    getTodosByTask,
+    getTodosByDeadline,
   };
 
   return (
