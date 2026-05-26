@@ -1,6 +1,8 @@
 const STORAGE_KEY = 'timeblocking-app-v1';
+const hasWindow = () => typeof window !== 'undefined' && typeof window.localStorage !== 'undefined';
 
 export function saveToLocalStorage(state) {
+  if (!hasWindow()) return false;
   try {
     const serialized = JSON.stringify(state);
     localStorage.setItem(STORAGE_KEY, serialized);
@@ -16,6 +18,7 @@ export function saveToLocalStorage(state) {
 }
 
 export function loadFromLocalStorage() {
+  if (!hasWindow()) return null;
   try {
     const serialized = localStorage.getItem(STORAGE_KEY);
     if (!serialized) {
@@ -29,6 +32,7 @@ export function loadFromLocalStorage() {
 }
 
 export function clearLocalStorage() {
+  if (!hasWindow()) return false;
   try {
     localStorage.removeItem(STORAGE_KEY);
     return true;
