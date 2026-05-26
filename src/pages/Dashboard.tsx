@@ -4,7 +4,7 @@ import { Topbar } from "@/components/app/Topbar";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { CalendarDays, AlertTriangle, CheckCircle2, Clock, ListTodo, FolderKanban, ArrowRight } from "lucide-react";
+import { CalendarDays, AlertTriangle, CheckCircle2, Clock, ListTodo, FolderKanban, ArrowRight, ListChecks } from "lucide-react";
 import { formatDate, formatDateBR } from "@/utils/date";
 import { cn } from "@/lib/utils";
 
@@ -16,7 +16,7 @@ const STATE_VARIANT: Record<string, { label: string; className: string }> = {
 };
 
 export function Dashboard() {
-  const { getTasks, getProjects, getOffenderTasks, state } = useAppContext();
+  const { getTasks, getProjects, getOffenderTasks, state, getTodosByDeadline } = useAppContext();
   const tasks = getTasks();
   const projects = getProjects();
   const offenders = getOffenderTasks();
@@ -25,6 +25,8 @@ export function Dashboard() {
   const todaySchedules = state.schedules
     .filter((s: any) => s.ativo && s.data === today)
     .sort((a: any, b: any) => a.hora_inicio.localeCompare(b.hora_inicio));
+
+  const todayTodos = getTodosByDeadline(today);
 
   const stats = {
     open: tasks.filter((t: any) => t.estado === "aberta").length,
@@ -56,7 +58,7 @@ export function Dashboard() {
                   <Clock className="h-4 w-4 text-primary" />
                   Agenda de hoje
                 </CardTitle>
-                <CardDescription>{todaySchedules.length} bloco(s) agendado(s)</CardDescription>
+                <CardDescription>{todaySchedules.length} bloco(s) + {todayTodos.length} TODO(s)</CardDescription>
               </div>
               <Button asChild variant="ghost" size="sm">
                 <Link to="/calendar">
@@ -65,7 +67,7 @@ export function Dashboard() {
               </Button>
             </CardHeader>
             <CardContent>
-              {todaySchedules.length === 0 ? (
+              {todaySchedules.length === 0 && todayTodos.length === 0 ? (
                 <p className="rounded-md border border-dashed py-8 text-center text-sm text-muted-foreground">
                   Nada agendado para hoje.
                 </p>
@@ -96,6 +98,32 @@ export function Dashboard() {
                         </div>
                         <Badge variant="outline" className="font-mono text-xs shrink-0">
                           {s.hora_inicio}–{s.hora_fim}
+                        </Badge>
+                      </li>
+                    );
+                  })}
+                  {todayTodos.map((td: any) => {
+                    const linkedTask = td.tarefa_id ? state.tasks.find((t: any) => t.id === td.tarefa_id) : null;
+                    const project = linkedTask ? projects.find((p: any) => p.id === linkedTask.projeto_id) : null;
+                    return (
+                      <li key={td.id} className="flex items-center gap-3 rounded-md border border-dashed bg-card p-3">
+                        <ListChecks className="h-4 w-4 shrink-0 text-muted-foreground" />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium">{td.titulo}</p>
+                          <div className="flex flex-wrap items-center gap-1 mt-0.5">
+                            {linkedTask && <span className="text-xs text-muted-foreground">{linkedTask.nome}</span>}
+                            {project && (
+                              <Badge style={{ backgroundColor: project.cor }} className="h-3.5 px-1 text-[9px] text-white leading-none">
+                                {project.nome}
+                              </Badge>
+                            )}
+                            <Badge variant="secondary" className="h-3.5 px-1 text-[9px] leading-none bg-amber-100 text-amber-700">
+                              TODO
+                            </Badge>
+                          </div>
+                        </div>
+                        <Badge variant="outline" className="font-mono text-xs shrink-0">
+                          Prazo hoje
                         </Badge>
                       </li>
                     );
