@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { DragDropContext, Droppable, Draggable, type DropResult } from "@hello-pangea/dnd";
-import { ChevronLeft, ChevronRight, X, GripVertical, AlertTriangle, Plus, ChevronUp, ChevronDown, CheckCircle2, XCircle, RotateCcw, Trash2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, X, GripVertical, AlertTriangle, Plus, ChevronUp, ChevronDown, CheckCircle2, XCircle, RotateCcw, Trash2, Check, Ban } from "lucide-react";
 import { useAppContext } from "@/hooks/useAppContext";
 import {
   getWeekDates, getWeekRange, addDays, SLOTS, SLOT_MINUTES,
@@ -281,8 +281,11 @@ export function CalendarView() {
                                 const color = type?.cor || getProjectColor(task.projeto_id);
                                 const dur = parseTime(s.hora_fim) - parseTime(s.hora_inicio);
                                 const blockH = Math.max(SLOT_H, (dur / SLOT_MINUTES) * SLOT_H) - 2;
+                                const isDone = task.estado === "concluída";
+                                const isCanceled = task.estado === "cancelada";
+                                const isInactive = isDone || isCanceled;
                                 return (
-                                  <Draggable key={s.id} draggableId={`schedule_${task.id}_${s.id}`} index={idx}>
+                                  <Draggable key={s.id} draggableId={`schedule_${task.id}_${s.id}`} index={idx} isDragDisabled={isInactive}>
                                     {(p, snap) => (
                                       <div
                                         ref={p.innerRef}
@@ -291,7 +294,9 @@ export function CalendarView() {
                                         onClick={(e) => { e.stopPropagation(); setActionTask(task); }}
                                         className={cn(
                                           "group absolute inset-x-0.5 z-10 cursor-pointer overflow-hidden rounded-md border-l-4 bg-background px-1.5 py-1 text-[11px] shadow-sm transition hover:bg-accent/50",
-                                          snap.isDragging && "ring-2 ring-primary"
+                                          snap.isDragging && "ring-2 ring-primary",
+                                          isDone && "opacity-60 line-through",
+                                          isCanceled && "opacity-50 italic"
                                         )}
                                         style={{
                                           top: 1,
@@ -302,20 +307,26 @@ export function CalendarView() {
                                       >
                                         <div className="flex items-start justify-between gap-1">
                                           <div className="min-w-0 flex-1">
-                                            <p className="truncate font-medium leading-tight">{task.nome}</p>
+                                            <div className="flex items-center gap-1">
+                                              <p className="truncate font-medium leading-tight">{task.nome}</p>
+                                              {isDone && <Check className="h-3 w-3 shrink-0 text-emerald-600" />}
+                                              {isCanceled && <Ban className="h-3 w-3 shrink-0 text-amber-600" />}
+                                            </div>
                                             <p className="font-mono text-[10px] text-muted-foreground">
                                               {s.hora_inicio}–{s.hora_fim}
                                             </p>
                                           </div>
-                                          <button
-                                            onClick={(e) => {
-                                              e.stopPropagation();
-                                              handleUnschedule(task.id, task.nome);
-                                            }}
-                                            className="opacity-0 transition group-hover:opacity-100"
-                                          >
-                                            <X className="h-3 w-3 text-muted-foreground hover:text-destructive" />
-                                          </button>
+                                          {!isInactive && (
+                                            <button
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleUnschedule(task.id, task.nome);
+                                              }}
+                                              className="opacity-0 transition group-hover:opacity-100"
+                                            >
+                                              <X className="h-3 w-3 text-muted-foreground hover:text-destructive" />
+                                            </button>
+                                          )}
                                         </div>
                                       </div>
                                     )}
