@@ -6,6 +6,14 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CalendarDays, AlertTriangle, CheckCircle2, Clock, ListTodo, FolderKanban, ArrowRight } from "lucide-react";
 import { formatDate, formatDateBR } from "@/utils/date";
+import { cn } from "@/lib/utils";
+
+const STATE_VARIANT: Record<string, { label: string; className: string }> = {
+  aberta: { label: "Aberta", className: "bg-slate-100 text-slate-700" },
+  agendada: { label: "Agendada", className: "bg-blue-100 text-blue-700" },
+  "concluída": { label: "Concluída", className: "bg-emerald-100 text-emerald-700" },
+  cancelada: { label: "Cancelada", className: "bg-zinc-100 text-zinc-500 line-through" },
+};
 
 export function Dashboard() {
   const { getTasks, getProjects, getOffenderTasks, state } = useAppContext();
