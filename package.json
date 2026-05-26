@@ -75,9 +75,9 @@
     "vite": "^7.0.0"
   },
   "overrides": {
-    "vite": "^7.0.0"
+    "@vitejs/plugin-react": "^6.0.0"
   },
   "resolutions": {
-    "vite": "^7.0.0"
+    "@vitejs/plugin-react": "^6.0.0"
   }
 }
