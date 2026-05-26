@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Draggable } from 'react-beautiful-dnd';
+import { Draggable } from '@hello-pangea/dnd';
 import { useAppContext } from '../../hooks/useAppContext';
 import CompleteTaskModal from '../Common/CompleteTaskModal';
 import './TaskItem.css';

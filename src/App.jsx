@@ -1,5 +1,5 @@
 import './App.css'
-import { DragDropContext } from 'react-beautiful-dnd'
+import { DragDropContext } from '@hello-pangea/dnd'
 import { AppContextProvider } from './context/AppContext.jsx'
 import { useAppContext } from './hooks/useAppContext.jsx'
 import Header from './components/Layout/Header'
