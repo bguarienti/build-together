@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { DragDropContext, Droppable, Draggable, type DropResult } from "@hello-pangea/dnd";
-import { ChevronLeft, ChevronRight, X, GripVertical, AlertTriangle, Plus } from "lucide-react";
+import { ChevronLeft, ChevronRight, X, GripVertical, AlertTriangle, Plus, ChevronUp, ChevronDown } from "lucide-react";
 import { useAppContext } from "@/hooks/useAppContext";
 import {
   getWeekDates, getWeekRange, addDays, SLOTS, SLOT_MINUTES,
