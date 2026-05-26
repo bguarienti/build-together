@@ -5,7 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Time Blocking — Planejamento local</title>
     <meta name="description" content="Sistema local de time blocking com projetos, tarefas e agenda semanal. 100% offline, dados salvos no navegador." />
-    <script type="module" crossorigin src="/build-together/assets/index-_zqbJu-v.js"></script>
+    <script>
+      // SPA GitHub Pages: restaura a rota original gravada pelo 404.html
+      (function (l) {
+        if (l.search[1] === '/') {
+          var decoded = l.search.slice(1).split('&').map(function (s) {
+            return s.replace(/~and~/g, '&');
+          }).join('?');
+          window.history.replaceState(null, null, l.pathname.slice(0, -1) + decoded + l.hash);
+        }
+      }(window.location));
+    </script>
+    <script type="module" crossorigin src="/build-together/assets/index-Co6TDugl.js"></script>
     <link rel="stylesheet" crossorigin href="/build-together/assets/index-DXYkOE0g.css">
   </head>
   <body>
