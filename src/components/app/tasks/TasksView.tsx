@@ -35,7 +35,7 @@ const STATE_VARIANT: Record<string, { label: string; className: string }> = {
 };
 
 export function TasksView() {
-  const { getTasks, getProjects, getTaskTypes, addTask, addSchedule, deleteTask, completeTask, cancelTask, reopenTask, updateTask, getTodosByTask, addTodo, completeTodo, deleteTodo } = useAppContext();
+  const { state, getTasks, getProjects, getTaskTypes, addTask, addSchedule, deleteTask, completeTask, cancelTask, reopenTask, updateTask, getTodosByTask, addTodo, completeTodo, deleteTodo } = useAppContext();
   const tasks = getTasks();
   const projects = getProjects();
   const types = getTaskTypes();
@@ -254,23 +254,25 @@ export function TasksView() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[40%]">Tarefa</TableHead>
+                <TableHead className="w-[35%]">Tarefa</TableHead>
                 <TableHead>Projeto</TableHead>
                 <TableHead>Tipo</TableHead>
                 <TableHead>Estado</TableHead>
+                <TableHead>Horário</TableHead>
                 <TableHead>Tempo</TableHead>
                 <TableHead className="text-right">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filtered.length === 0 ? (
-                <TableRow><TableCell colSpan={6} className="py-12 text-center text-sm text-muted-foreground">Nenhuma tarefa</TableCell></TableRow>
+                <TableRow><TableCell colSpan={7} className="py-12 text-center text-sm text-muted-foreground">Nenhuma tarefa</TableCell></TableRow>
               ) : (
                 filtered.map((task: any) => {
                   const project = projects.find((p: any) => p.id === task.projeto_id);
                   const type = task.task_type_id ? types.find((t: any) => t.id === task.task_type_id) : null;
                   const isOffender = !task.projeto_id;
                   const isActive = task.estado === "aberta" || task.estado === "agendada";
+                  const schedule = state.schedules.find((s: any) => s.ativo && s.tarefa_id === task.id);
                   return (
                     <TableRow key={task.id}>
                       <TableCell>
@@ -294,6 +296,9 @@ export function TasksView() {
                         <Badge variant="secondary" className={STATE_VARIANT[task.estado]?.className}>
                           {STATE_VARIANT[task.estado]?.label ?? task.estado}
                         </Badge>
+                      </TableCell>
+                      <TableCell className="font-mono text-xs">
+                        {schedule ? `${schedule.hora_inicio} – ${schedule.hora_fim}` : "—"}
                       </TableCell>
                       <TableCell className="font-mono text-xs">
                         {task.tempo_gasto ? formatHoursMinutes(task.tempo_gasto) : "—"}

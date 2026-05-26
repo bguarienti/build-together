@@ -27,6 +27,12 @@ import { HoursMinutesInput, toDecimalHours } from "@/components/app/HoursMinutes
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
+const STATE_VARIANT: Record<string, { label: string; className: string }> = {
+  aberta: { label: "Aberta", className: "bg-slate-100 text-slate-700" },
+  agendada: { label: "Agendada", className: "bg-blue-100 text-blue-700" },
+  "concluída": { label: "Concluída", className: "bg-emerald-100 text-emerald-700" },
+  cancelada: { label: "Cancelada", className: "bg-zinc-100 text-zinc-500 line-through" },
+};
 
 type NewSlot = { date: string; startMin: number } | null;
 
@@ -329,16 +335,26 @@ export function CalendarView() {
                                         }}
                                       >
                                         <div className="flex items-start justify-between gap-1">
-                                          <div className="min-w-0 flex-1">
-                                            <div className="flex items-center gap-1">
-                                              <p className="truncate font-medium leading-tight">{task.nome}</p>
-                                              {isDone && <Check className="h-3 w-3 shrink-0 text-emerald-600" />}
-                                              {isCanceled && <Ban className="h-3 w-3 shrink-0 text-amber-600" />}
-                                            </div>
+                                        <div className="min-w-0 flex-1">
+                                          <div className="flex items-center gap-1">
+                                            <p className="truncate font-medium leading-tight">{task.nome}</p>
+                                            {isDone && <Check className="h-3 w-3 shrink-0 text-emerald-600" />}
+                                            {isCanceled && <Ban className="h-3 w-3 shrink-0 text-amber-600" />}
+                                          </div>
+                                          <div className="flex flex-wrap items-center gap-1">
                                             <p className="font-mono text-[10px] text-muted-foreground">
                                               {s.hora_inicio}–{s.hora_fim}
                                             </p>
+                                            {type && (
+                                              <Badge style={{ backgroundColor: type.cor }} className="h-3 px-1 text-[9px] text-white leading-none">
+                                                {type.nome}
+                                              </Badge>
+                                            )}
+                                            <Badge variant="secondary" className={cn("h-3 px-1 text-[9px] leading-none", STATE_VARIANT[task.estado]?.className)}>
+                                              {STATE_VARIANT[task.estado]?.label ?? task.estado}
+                                            </Badge>
                                           </div>
+                                        </div>
                                           {!isInactive && (
                                             <button
                                               onClick={(e) => {
