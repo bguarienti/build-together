@@ -316,6 +316,9 @@ export function TasksView() {
                           </Button>
                           {isActive && (
                             <>
+                              <Button size="icon" variant="ghost" title="Editar" onClick={() => { setEditTarget(task); setEditProjectId(task.projeto_id || "none"); setEditTypeId(task.task_type_id || "none"); }}>
+                                <Pencil className="h-4 w-4 text-blue-600" />
+                              </Button>
                               <Button size="icon" variant="ghost" title="Concluir" onClick={() => { setCompleteTarget(task); setTempoH(""); setTempoM(""); }}>
                                 <CheckCircle2 className="h-4 w-4 text-emerald-600" />
                               </Button>
