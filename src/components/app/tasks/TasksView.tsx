@@ -272,6 +272,7 @@ export function TasksView() {
                   const type = task.task_type_id ? types.find((t: any) => t.id === task.task_type_id) : null;
                   const isOffender = !task.projeto_id;
                   const isActive = task.estado === "aberta" || task.estado === "agendada";
+                  const schedule = state.schedules.find((s: any) => s.ativo && s.tarefa_id === task.id);
                   return (
                     <TableRow key={task.id}>
                       <TableCell>
