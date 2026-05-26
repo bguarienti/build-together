@@ -288,7 +288,7 @@ export function CalendarView() {
                                         ref={p.innerRef}
                                         {...p.draggableProps}
                                         {...p.dragHandleProps}
-                                        onClick={(e) => e.stopPropagation()}
+                                        onClick={(e) => { e.stopPropagation(); setActionTask(task); }}
                                         className={cn(
                                           "group absolute inset-x-0.5 z-10 overflow-hidden rounded-md border-l-4 bg-background px-1.5 py-1 text-[11px] shadow-sm transition",
                                           snap.isDragging && "ring-2 ring-primary"
