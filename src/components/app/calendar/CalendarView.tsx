@@ -27,7 +27,7 @@ type NewSlot = { date: string; startMin: number } | null;
 const SLOT_H = 16;
 
 export function CalendarView() {
-  const { state, getTasks, getProjects, getTaskTypes, addTask, addSchedule, rescheduleTask, unscheduleTask } = useAppContext();
+  const { state, getTasks, getProjects, getTaskTypes, addTask, addSchedule, rescheduleTask, unscheduleTask, completeTask, cancelTask, reopenTask, deleteTask } = useAppContext();
   const [currentWeek, setCurrentWeek] = useState<Date>(new Date());
   const [newSlot, setNewSlot] = useState<NewSlot>(null);
   const [name, setName] = useState("");
@@ -35,6 +35,9 @@ export function CalendarView() {
   const [typeId, setTypeId] = useState<string>("none");
   const [durationMin, setDurationMin] = useState<number>(60);
   const [isMinimized, setIsMinimized] = useState(false);
+  const [actionTask, setActionTask] = useState<any | null>(null);
+  const [completeOpen, setCompleteOpen] = useState(false);
+  const [tempoGasto, setTempoGasto] = useState("");
 
   const weekDates = getWeekDates(currentWeek);
   const projects = getProjects();
