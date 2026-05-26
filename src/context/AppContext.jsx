@@ -74,6 +74,7 @@ export function AppContextProvider({ children }) {
       data_cancelamento: null,
       historico_replanejamentos: 0,
       datas_replanejamento: [],
+      anotacoes: '',
       data_criacao: Date.now(),
       ativo: true,
     };
