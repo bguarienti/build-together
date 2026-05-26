@@ -3,8 +3,9 @@ import { useAppContext } from "@/hooks/useAppContext";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { calculateHoursByTaskType } from "@/utils/metrics";
-import { AlertTriangle, Clock, CheckCircle2, RotateCw, XCircle } from "lucide-react";
+import { calculateHoursByTaskType, calculateDelayMetrics } from "@/utils/metrics";
+import { formatHoursMinutes } from "@/components/app/HoursMinutesInput";
+import { AlertTriangle, Clock, CheckCircle2, RotateCw, XCircle, TrendingUp, TrendingDown } from "lucide-react";
 
 export function MetricsView() {
   const { state, getAllMetrics } = useAppContext();
@@ -12,6 +13,10 @@ export function MetricsView() {
   const typeMetrics = useMemo(
     () => calculateHoursByTaskType(state.tasks, state.taskTypes),
     [state.tasks, state.taskTypes]
+  );
+  const delayOverall = useMemo(
+    () => calculateDelayMetrics(state.tasks, state.schedules),
+    [state.tasks, state.schedules]
   );
 
   const totalHours = metrics.por_projeto.reduce((s: number, m: any) => s + m.tempo_gasto_total, 0) + metrics.ofensoras.tempo_gasto_total;
