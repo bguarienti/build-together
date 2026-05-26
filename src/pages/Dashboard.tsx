@@ -4,7 +4,7 @@ import { Topbar } from "@/components/app/Topbar";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { CalendarDays, AlertTriangle, CheckCircle2, Clock, ListTodo, FolderKanban, ArrowRight } from "lucide-react";
+import { CalendarDays, AlertTriangle, CheckCircle2, Clock, ListTodo, FolderKanban, ArrowRight, ListChecks } from "lucide-react";
 import { formatDate, formatDateBR } from "@/utils/date";
 import { cn } from "@/lib/utils";
 
