@@ -397,6 +397,102 @@ export function AppContextProvider({ children }) {
     return state.taskTypes.filter((tt) => tt.ativo);
   }, [state.taskTypes]);
 
+  // TODOs CRUD (NOVO v1.2)
+  const addTodo = useCallback((tarefa_id, titulo, prazo = null) => {
+    if (!titulo || titulo.trim().length === 0) {
+      throw new Error('Título do TODO é obrigatório');
+    }
+    if (titulo.length > 255) {
+      throw new Error('Título não pode ter mais de 255 caracteres');
+    }
+    if (prazo && !/^\d{4}-\d{2}-\d{2}$/.test(prazo)) {
+      throw new Error('Prazo deve estar em YYYY-MM-DD');
+    }
+
+    const newTodo = {
+      id: generateUUID(),
+      tarefa_id: tarefa_id || null,
+      titulo: titulo.trim(),
+      prazo: prazo || null,
+      estado: 'aberta',
+      data_criacao: Date.now(),
+      data_conclusao: null,
+      data_cancelamento: null,
+      ativo: true,
+    };
+
+    setState((prev) => ({ ...prev, todos: [...prev.todos, newTodo] }));
+    return newTodo;
+  }, []);
+
+  const updateTodo = useCallback((id, updates) => {
+    if (updates.titulo !== undefined) {
+      if (!updates.titulo || updates.titulo.trim().length === 0) {
+        throw new Error('Título não pode estar vazio');
+      }
+      if (updates.titulo.length > 255) {
+        throw new Error('Título não pode ter mais de 255 caracteres');
+      }
+    }
+    setState((prev) => ({
+      ...prev,
+      todos: prev.todos.map((td) => (td.id === id ? { ...td, ...updates } : td)),
+    }));
+  }, []);
+
+  const deleteTodo = useCallback((id) => {
+    setState((prev) => ({
+      ...prev,
+      todos: prev.todos.map((td) => (td.id === id ? { ...td, ativo: false } : td)),
+    }));
+  }, []);
+
+  const completeTodo = useCallback((id) => {
+    setState((prev) => ({
+      ...prev,
+      todos: prev.todos.map((td) =>
+        td.id === id ? { ...td, estado: 'concluída', data_conclusao: Date.now() } : td
+      ),
+    }));
+  }, []);
+
+  const cancelTodo = useCallback((id) => {
+    setState((prev) => ({
+      ...prev,
+      todos: prev.todos.map((td) =>
+        td.id === id ? { ...td, estado: 'cancelada', data_cancelamento: Date.now() } : td
+      ),
+    }));
+  }, []);
+
+  const reopenTodo = useCallback((id) => {
+    setState((prev) => ({
+      ...prev,
+      todos: prev.todos.map((td) =>
+        td.id === id
+          ? { ...td, estado: 'aberta', data_conclusao: null, data_cancelamento: null }
+          : td
+      ),
+    }));
+  }, []);
+
+  const getTodos = useCallback(() => {
+    return state.todos.filter((td) => td.ativo);
+  }, [state.todos]);
+
+  const getTodosByTask = useCallback(
+    (tarefa_id) => state.todos.filter((td) => td.ativo && td.tarefa_id === tarefa_id),
+    [state.todos]
+  );
+
+  const getTodosByDeadline = useCallback(
+    (dateStr) =>
+      state.todos.filter(
+        (td) => td.ativo && td.prazo === dateStr && td.estado === 'aberta'
+      ),
+    [state.todos]
+  );
+
   const value = {
     state,
     addProject,
