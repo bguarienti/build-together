@@ -250,6 +250,23 @@ export function AppContextProvider({ children }) {
     }));
   }, []);
 
+  const reopenTask = useCallback((tarefa_id) => {
+    setState((prev) => ({
+      ...prev,
+      tasks: prev.tasks.map((t) =>
+        t.id === tarefa_id
+          ? {
+              ...t,
+              estado: 'aberta',
+              data_conclusao: null,
+              data_cancelamento: null,
+              tempo_gasto: null,
+            }
+          : t
+      ),
+    }));
+  }, []);
+
   const getTasksByProjectId = useCallback(
     (projectId) => {
       return state.tasks.filter(
