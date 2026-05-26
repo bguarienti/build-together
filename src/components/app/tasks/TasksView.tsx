@@ -35,7 +35,7 @@ const STATE_VARIANT: Record<string, { label: string; className: string }> = {
 };
 
 export function TasksView() {
-  const { getTasks, getProjects, getTaskTypes, addTask, addSchedule, deleteTask, completeTask, cancelTask, reopenTask, updateTask, getTodosByTask, addTodo, completeTodo, deleteTodo } = useAppContext();
+  const { state, getTasks, getProjects, getTaskTypes, addTask, addSchedule, deleteTask, completeTask, cancelTask, reopenTask, updateTask, getTodosByTask, addTodo, completeTodo, deleteTodo } = useAppContext();
   const tasks = getTasks();
   const projects = getProjects();
   const types = getTaskTypes();
