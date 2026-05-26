@@ -33,7 +33,7 @@ const STATE_VARIANT: Record<string, { label: string; className: string }> = {
 };
 
 export function TasksView() {
-  const { getTasks, getProjects, getTaskTypes, addTask, deleteTask, completeTask, cancelTask } = useAppContext();
+  const { getTasks, getProjects, getTaskTypes, addTask, addSchedule, deleteTask, completeTask, cancelTask } = useAppContext();
   const tasks = getTasks();
   const projects = getProjects();
   const types = getTaskTypes();
@@ -44,8 +44,22 @@ export function TasksView() {
   const [name, setName] = useState("");
   const [projectId, setProjectId] = useState<string>("none");
   const [typeId, setTypeId] = useState<string>("none");
+  const [schedule, setSchedule] = useState(false);
+  const [date, setDate] = useState<Date | undefined>(new Date());
+  const [startTime, setStartTime] = useState<string>("09:00");
+  const [durationMin, setDurationMin] = useState<number>(60);
   const [completeTarget, setCompleteTarget] = useState<any | null>(null);
   const [tempoGasto, setTempoGasto] = useState("");
+
+  const timeOptions = useMemo(() => {
+    const out: string[] = [];
+    for (let h = 6; h <= 22; h++) {
+      for (let m = 0; m < 60; m += SLOT_MINUTES) {
+        out.push(`${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`);
+      }
+    }
+    return out;
+  }, []);
 
   const filtered = useMemo(() => {
     return tasks.filter((t: any) => {
@@ -56,12 +70,25 @@ export function TasksView() {
     });
   }, [tasks, filter, projFilter]);
 
+  const resetForm = () => {
+    setName(""); setProjectId("none"); setTypeId("none");
+    setSchedule(false); setDate(new Date()); setStartTime("09:00"); setDurationMin(60);
+    setShowForm(false);
+  };
+
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      addTask(name.trim(), projectId === "none" ? null : projectId, typeId === "none" ? null : typeId);
-      toast.success("Tarefa criada");
-      setName(""); setProjectId("none"); setTypeId("none"); setShowForm(false);
+      const task = addTask(name.trim(), projectId === "none" ? null : projectId, typeId === "none" ? null : typeId);
+      if (schedule) {
+        if (!date) throw new Error("Selecione uma data");
+        const start = parseTime(startTime);
+        addSchedule(task.id, formatDate(date), startTime, minutesToTime(start + durationMin));
+        toast.success("Tarefa criada e agendada");
+      } else {
+        toast.success("Tarefa criada");
+      }
+      resetForm();
     } catch (err: any) {
       toast.error(err.message);
     }
