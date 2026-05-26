@@ -233,7 +233,7 @@ export function CalendarView() {
                     <div
                       className={cn(
                         "border-r px-1 text-right text-[10px] text-muted-foreground",
-                        isHourStart ? "border-b" : "border-b border-dashed border-border/40"
+                        isHourStart ? "border-t" : "border-t border-dashed border-border/40"
                       )}
                       style={{ height: SLOT_H }}
                     >
