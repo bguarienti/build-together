@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { DragDropContext, Droppable, Draggable, type DropResult } from "@hello-pangea/dnd";
-import { ChevronLeft, ChevronRight, X, GripVertical, AlertTriangle, Plus, ChevronUp, ChevronDown } from "lucide-react";
+import { ChevronLeft, ChevronRight, X, GripVertical, AlertTriangle, Plus, ChevronUp, ChevronDown, CheckCircle2, XCircle, RotateCcw, Trash2 } from "lucide-react";
 import { useAppContext } from "@/hooks/useAppContext";
 import {
   getWeekDates, getWeekRange, addDays, SLOTS, SLOT_MINUTES,
@@ -27,7 +27,7 @@ type NewSlot = { date: string; startMin: number } | null;
 const SLOT_H = 16;
 
 export function CalendarView() {
-  const { state, getTasks, getProjects, getTaskTypes, addTask, addSchedule, rescheduleTask, unscheduleTask } = useAppContext();
+  const { state, getTasks, getProjects, getTaskTypes, addTask, addSchedule, rescheduleTask, unscheduleTask, completeTask, cancelTask, reopenTask, deleteTask } = useAppContext();
   const [currentWeek, setCurrentWeek] = useState<Date>(new Date());
   const [newSlot, setNewSlot] = useState<NewSlot>(null);
   const [name, setName] = useState("");
@@ -35,6 +35,9 @@ export function CalendarView() {
   const [typeId, setTypeId] = useState<string>("none");
   const [durationMin, setDurationMin] = useState<number>(60);
   const [isMinimized, setIsMinimized] = useState(false);
+  const [actionTask, setActionTask] = useState<any | null>(null);
+  const [completeOpen, setCompleteOpen] = useState(false);
+  const [tempoGasto, setTempoGasto] = useState("");
 
   const weekDates = getWeekDates(currentWeek);
   const projects = getProjects();
@@ -285,9 +288,9 @@ export function CalendarView() {
                                         ref={p.innerRef}
                                         {...p.draggableProps}
                                         {...p.dragHandleProps}
-                                        onClick={(e) => e.stopPropagation()}
+                                        onClick={(e) => { e.stopPropagation(); setActionTask(task); }}
                                         className={cn(
-                                          "group absolute inset-x-0.5 z-10 overflow-hidden rounded-md border-l-4 bg-background px-1.5 py-1 text-[11px] shadow-sm transition",
+                                          "group absolute inset-x-0.5 z-10 cursor-pointer overflow-hidden rounded-md border-l-4 bg-background px-1.5 py-1 text-[11px] shadow-sm transition hover:bg-accent/50",
                                           snap.isDragging && "ring-2 ring-primary"
                                         )}
                                         style={{
@@ -391,6 +394,93 @@ export function CalendarView() {
               <Button type="submit">Criar e agendar</Button>
             </DialogFooter>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de ações para tarefa agendada */}
+      <Dialog open={!!actionTask && !completeOpen} onOpenChange={(o) => !o && setActionTask(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{actionTask?.nome}</DialogTitle>
+            <DialogDescription>
+              {actionTask && `Estado: ${actionTask.estado}`}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid grid-cols-2 gap-2">
+            {actionTask && (actionTask.estado === "aberta" || actionTask.estado === "agendada") && (
+              <>
+                <Button variant="outline" onClick={() => { setCompleteOpen(true); setTempoGasto(""); }}>
+                  <CheckCircle2 className="mr-2 h-4 w-4 text-emerald-600" /> Concluir
+                </Button>
+                <Button variant="outline" onClick={() => {
+                  if (window.confirm(`Cancelar "${actionTask.nome}"?`)) {
+                    cancelTask(actionTask.id); toast.success("Cancelada"); setActionTask(null);
+                  }
+                }}>
+                  <XCircle className="mr-2 h-4 w-4 text-amber-600" /> Cancelar
+                </Button>
+                <Button variant="outline" onClick={() => {
+                  unscheduleTask(actionTask.id); toast.success("Desagendada"); setActionTask(null);
+                }}>
+                  <X className="mr-2 h-4 w-4" /> Desagendar
+                </Button>
+              </>
+            )}
+            {actionTask && (actionTask.estado === "concluída" || actionTask.estado === "cancelada") && (
+              <Button variant="outline" onClick={() => {
+                reopenTask(actionTask.id); toast.success("Reaberta"); setActionTask(null);
+              }}>
+                <RotateCcw className="mr-2 h-4 w-4 text-blue-600" /> Reabrir
+              </Button>
+            )}
+            <Button variant="outline" className="text-destructive" onClick={() => {
+              if (actionTask && window.confirm(`Deletar "${actionTask.nome}"?`)) {
+                deleteTask(actionTask.id); toast.success("Removida"); setActionTask(null);
+              }
+            }}>
+              <Trash2 className="mr-2 h-4 w-4" /> Deletar
+            </Button>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setActionTask(null)}>Fechar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de conclusão (tempo gasto) */}
+      <Dialog open={completeOpen} onOpenChange={(o) => { setCompleteOpen(o); if (!o) setTempoGasto(""); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Concluir tarefa</DialogTitle>
+            <DialogDescription>{actionTask?.nome}</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2">
+            <Label htmlFor="cal-tempo">Tempo gasto (horas)</Label>
+            <Input
+              id="cal-tempo"
+              type="number"
+              step="0.25"
+              min="0.25"
+              placeholder="Ex: 2.5"
+              value={tempoGasto}
+              onChange={(e) => setTempoGasto(e.target.value)}
+              autoFocus
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setCompleteOpen(false)}>Cancelar</Button>
+            <Button onClick={() => {
+              try {
+                const t = parseFloat(tempoGasto);
+                if (!t || t <= 0) throw new Error("Tempo gasto deve ser positivo");
+                completeTask(actionTask.id, t);
+                toast.success("Tarefa concluída");
+                setCompleteOpen(false); setActionTask(null); setTempoGasto("");
+              } catch (err: any) {
+                toast.error(err.message);
+              }
+            }}>Concluir</Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </DragDropContext>
