@@ -43,7 +43,7 @@
     "@radix-ui/react-tooltip": "^1.2.7",
     "@tanstack/react-query": "^5.100.1",
     "@tanstack/react-router": "^1.168.25",
-    "@tanstack/react-router-devtools": "^1.168.25",
+    
     "@tanstack/react-start": "^1.167.50",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
