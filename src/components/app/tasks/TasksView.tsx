@@ -254,17 +254,18 @@ export function TasksView() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[40%]">Tarefa</TableHead>
+                <TableHead className="w-[35%]">Tarefa</TableHead>
                 <TableHead>Projeto</TableHead>
                 <TableHead>Tipo</TableHead>
                 <TableHead>Estado</TableHead>
+                <TableHead>Horário</TableHead>
                 <TableHead>Tempo</TableHead>
                 <TableHead className="text-right">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filtered.length === 0 ? (
-                <TableRow><TableCell colSpan={6} className="py-12 text-center text-sm text-muted-foreground">Nenhuma tarefa</TableCell></TableRow>
+                <TableRow><TableCell colSpan={7} className="py-12 text-center text-sm text-muted-foreground">Nenhuma tarefa</TableCell></TableRow>
               ) : (
                 filtered.map((task: any) => {
                   const project = projects.find((p: any) => p.id === task.projeto_id);
