@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { Link } from "react-router-dom";
 import { useAppContext } from "@/hooks/useAppContext";
 import { Topbar } from "@/components/app/Topbar";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -7,12 +7,7 @@ import { Button } from "@/components/ui/button";
 import { CalendarDays, AlertTriangle, CheckCircle2, Clock, ListTodo, FolderKanban, ArrowRight } from "lucide-react";
 import { formatDate, formatDateBR } from "@/utils/date";
 
-export const Route = createFileRoute("/")({
-  head: () => ({ meta: [{ title: "Dashboard — Time Blocking" }] }),
-  component: Dashboard,
-});
-
-function Dashboard() {
+export function Dashboard() {
   const { getTasks, getProjects, getOffenderTasks, state } = useAppContext();
   const tasks = getTasks();
   const projects = getProjects();
@@ -38,7 +33,6 @@ function Dashboard() {
     <>
       <Topbar title="Dashboard" description={`Hoje, ${formatDateBR(new Date())}`} />
       <div className="flex-1 space-y-6 p-6">
-        {/* KPIs */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <KpiCard icon={ListTodo} label="Tarefas abertas" value={stats.open} hint="aguardando agendamento" />
           <KpiCard icon={CalendarDays} label="Agendadas" value={stats.scheduled} hint="na agenda" />
@@ -47,7 +41,6 @@ function Dashboard() {
         </div>
 
         <div className="grid gap-6 lg:grid-cols-3">
-          {/* Hoje */}
           <Card className="lg:col-span-2">
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
@@ -91,7 +84,6 @@ function Dashboard() {
             </CardContent>
           </Card>
 
-          {/* Ofensoras */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-base">
@@ -124,22 +116,29 @@ function Dashboard() {
             </CardContent>
           </Card>
         </div>
+
+        <div className="grid gap-2 text-xs text-muted-foreground sm:grid-cols-4">
+          <span>Abertas: {stats.open}</span>
+          <span>Agendadas: {stats.scheduled}</span>
+          <span>Concluídas: {stats.completed}</span>
+          <span>Canceladas: {stats.canceled}</span>
+        </div>
       </div>
     </>
   );
 }
 
-function KpiCard({ icon: Icon, label, value, hint }: any) {
+function KpiCard({ icon: Icon, label, value, hint }: { icon: any; label: string; value: number; hint?: string }) {
   return (
     <Card>
-      <CardContent className="flex items-center gap-4 p-5">
-        <div className="flex h-10 w-10 items-center justify-center rounded-md bg-primary/10 text-primary">
-          <Icon className="h-5 w-5" />
+      <CardContent className="flex items-center gap-3 p-4">
+        <div className="flex h-10 w-10 items-center justify-center rounded-md bg-muted">
+          <Icon className="h-5 w-5 text-foreground" />
         </div>
         <div className="flex-1">
-          <p className="text-xs uppercase tracking-wide text-muted-foreground">{label}</p>
+          <p className="text-xs text-muted-foreground">{label}</p>
           <p className="text-2xl font-semibold leading-tight">{value}</p>
-          {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
+          {hint && <p className="text-[11px] text-muted-foreground">{hint}</p>}
         </div>
       </CardContent>
     </Card>

@@ -1,4 +1,4 @@
-import { Link, useRouterState } from "@tanstack/react-router";
+import { Link, useLocation } from "react-router-dom";
 import { LayoutDashboard, CalendarDays, ListTodo, FolderKanban, Tags, BarChart3, Clock } from "lucide-react";
 import {
   Sidebar,
@@ -24,7 +24,7 @@ const items = [
 ];
 
 export function AppSidebar() {
-  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const { pathname } = useLocation();
   const { getOffenderTasks } = useAppContext();
   const offenders = getOffenderTasks().length;
 
