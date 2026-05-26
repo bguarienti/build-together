@@ -11,6 +11,7 @@ export function AppContextProvider({ children }) {
     tasks: [],
     schedules: [],
     taskTypes: [], // NOVO v1.1
+    todos: [], // NOVO v1.2 - TODOs vinculados a tarefas
   });
 
   const addProject = useCallback((nome, cor = null) => {
