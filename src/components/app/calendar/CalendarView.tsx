@@ -105,7 +105,7 @@ export function CalendarView() {
     <DragDropContext onDragEnd={handleDragEnd}>
       <div className="flex h-[calc(100vh-6.5rem)] flex-col gap-4">
         {/* Faixa horizontal de tarefas abertas */}
-        <section className="flex flex-col rounded-lg border bg-card">
+        <section className={cn("flex flex-col rounded-lg border bg-card transition-all", isMinimized ? "shrink-0" : "")}>
           <div className="flex items-center justify-between gap-3 border-b px-3 py-2">
             <div>
               <p className="text-sm font-semibold">Tarefas abertas</p>
@@ -113,70 +113,75 @@ export function CalendarView() {
                 {openTasks.length} para agendar · arraste para o calendário ou clique num horário vazio
               </p>
             </div>
+            <Button variant="ghost" size="sm" onClick={() => setIsMinimized((v) => !v)} className="h-7 w-7 p-0">
+              {isMinimized ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
+            </Button>
           </div>
-          <Droppable droppableId="tasks-list" type="SCHEDULE" direction="horizontal">
-            {(provided, snapshot) => (
-              <ScrollArea className="w-full">
-                <div
-                  ref={provided.innerRef}
-                  {...provided.droppableProps}
-                  className={cn(
-                    "flex gap-2 p-3",
-                    snapshot.isDraggingOver && "bg-primary/5"
-                  )}
-                >
-                  {openTasks.length === 0 ? (
-                    <p className="w-full rounded-md border border-dashed py-4 text-center text-xs text-muted-foreground">
-                      Sem tarefas abertas
-                    </p>
-                  ) : (
-                    openTasks.map((task: any, index: number) => {
-                      const project = projects.find((p: any) => p.id === task.projeto_id);
-                      const type = task.task_type_id ? taskTypes.find((t: any) => t.id === task.task_type_id) : null;
-                      const isOffender = !task.projeto_id;
-                      return (
-                        <Draggable key={task.id} draggableId={task.id} index={index}>
-                          {(p, snap) => (
-                            <div
-                              ref={p.innerRef}
-                              {...p.draggableProps}
-                              {...p.dragHandleProps}
-                              className={cn(
-                                "group flex w-56 shrink-0 items-start gap-2 rounded-md border bg-background p-2 text-sm shadow-sm transition",
-                                snap.isDragging && "ring-2 ring-primary",
-                                isOffender && "border-destructive/40"
-                              )}
-                            >
-                              <div className="w-1 self-stretch rounded" style={{ backgroundColor: getProjectColor(task.projeto_id) }} />
-                              <GripVertical className="mt-0.5 h-3.5 w-3.5 text-muted-foreground opacity-0 transition group-hover:opacity-100" />
-                              <div className="min-w-0 flex-1 space-y-1">
-                                <p className="truncate font-medium leading-tight">{task.nome}</p>
-                                <div className="flex flex-wrap items-center gap-1">
-                                  {project && <Badge variant="outline" className="h-4 px-1 text-[10px]">{project.nome}</Badge>}
-                                  {type && (
-                                    <Badge style={{ backgroundColor: type.cor }} className="h-4 px-1 text-[10px] text-white">
-                                      {type.nome}
-                                    </Badge>
-                                  )}
-                                  {isOffender && (
-                                    <span className="flex items-center gap-0.5 text-[10px] text-destructive">
-                                      <AlertTriangle className="h-3 w-3" /> sem projeto
-                                    </span>
-                                  )}
+          {!isMinimized && (
+            <Droppable droppableId="tasks-list" type="SCHEDULE" direction="horizontal">
+              {(provided, snapshot) => (
+                <ScrollArea className="w-full">
+                  <div
+                    ref={provided.innerRef}
+                    {...provided.droppableProps}
+                    className={cn(
+                      "flex gap-2 p-3",
+                      snapshot.isDraggingOver && "bg-primary/5"
+                    )}
+                  >
+                    {openTasks.length === 0 ? (
+                      <p className="w-full rounded-md border border-dashed py-4 text-center text-xs text-muted-foreground">
+                        Sem tarefas abertas
+                      </p>
+                    ) : (
+                      openTasks.map((task: any, index: number) => {
+                        const project = projects.find((p: any) => p.id === task.projeto_id);
+                        const type = task.task_type_id ? taskTypes.find((t: any) => t.id === task.task_type_id) : null;
+                        const isOffender = !task.projeto_id;
+                        return (
+                          <Draggable key={task.id} draggableId={task.id} index={index}>
+                            {(p, snap) => (
+                              <div
+                                ref={p.innerRef}
+                                {...p.draggableProps}
+                                {...p.dragHandleProps}
+                                className={cn(
+                                  "group flex w-56 shrink-0 items-start gap-2 rounded-md border bg-background p-2 text-sm shadow-sm transition",
+                                  snap.isDragging && "ring-2 ring-primary",
+                                  isOffender && "border-destructive/40"
+                                )}
+                              >
+                                <div className="w-1 self-stretch rounded" style={{ backgroundColor: getProjectColor(task.projeto_id) }} />
+                                <GripVertical className="mt-0.5 h-3.5 w-3.5 text-muted-foreground opacity-0 transition group-hover:opacity-100" />
+                                <div className="min-w-0 flex-1 space-y-1">
+                                  <p className="truncate font-medium leading-tight">{task.nome}</p>
+                                  <div className="flex flex-wrap items-center gap-1">
+                                    {project && <Badge variant="outline" className="h-4 px-1 text-[10px]">{project.nome}</Badge>}
+                                    {type && (
+                                      <Badge style={{ backgroundColor: type.cor }} className="h-4 px-1 text-[10px] text-white">
+                                        {type.nome}
+                                      </Badge>
+                                    )}
+                                    {isOffender && (
+                                      <span className="flex items-center gap-0.5 text-[10px] text-destructive">
+                                        <AlertTriangle className="h-3 w-3" /> sem projeto
+                                      </span>
+                                    )}
+                                  </div>
                                 </div>
                               </div>
-                            </div>
-                          )}
-                        </Draggable>
-                      );
-                    })
-                  )}
-                  {provided.placeholder}
-                </div>
-                <ScrollBar orientation="horizontal" />
-              </ScrollArea>
-            )}
-          </Droppable>
+                            )}
+                          </Draggable>
+                        );
+                      })
+                    )}
+                    {provided.placeholder}
+                  </div>
+                  <ScrollBar orientation="horizontal" />
+                </ScrollArea>
+              )}
+            </Droppable>
+          )}
         </section>
 
         {/* Grid de calendário */}
