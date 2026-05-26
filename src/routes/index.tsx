@@ -1,20 +1,28 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import App from "../App.jsx";
 
 export const Route = createFileRoute("/")({
+  head: () => ({
+    meta: [
+      { title: "Time Blocking — Planejamento Local" },
+      { name: "description", content: "Sistema local de time blocking com projetos, tarefas e agenda semanal." },
+    ],
+  }),
   component: Index,
 });
 
 function Index() {
-  return (
-    <main className="flex min-h-screen items-center justify-center bg-background p-8">
-      <div className="max-w-xl text-center">
-        <h1 className="text-4xl font-bold tracking-tight text-foreground">
-          Projeto pronto
-        </h1>
-        <p className="mt-3 text-muted-foreground">
-          Cole seu código aqui ou me diga o que construir em seguida.
-        </p>
-      </div>
-    </main>
-  );
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
+  if (!mounted) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-background p-8">
+        <p className="text-muted-foreground">Carregando…</p>
+      </main>
+    );
+  }
+
+  return <App />;
 }
