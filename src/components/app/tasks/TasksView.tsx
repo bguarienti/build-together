@@ -304,6 +304,13 @@ export function TasksView() {
                               </Button>
                             </>
                           )}
+                          {!isActive && (
+                            <Button size="icon" variant="ghost" title="Reabrir" onClick={() => {
+                              reopenTask(task.id); toast.success("Tarefa reaberta");
+                            }}>
+                              <RotateCcw className="h-4 w-4 text-blue-600" />
+                            </Button>
+                          )}
                           <Button size="icon" variant="ghost" title="Deletar" onClick={() => {
                             if (window.confirm(`Deletar "${task.nome}"?`)) { deleteTask(task.id); toast.success("Removida"); }
                           }}>
