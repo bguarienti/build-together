@@ -298,6 +298,9 @@ export function TasksView() {
                         </Badge>
                       </TableCell>
                       <TableCell className="font-mono text-xs">
+                        {schedule ? `${schedule.hora_inicio} – ${schedule.hora_fim}` : "—"}
+                      </TableCell>
+                      <TableCell className="font-mono text-xs">
                         {task.tempo_gasto ? formatHoursMinutes(task.tempo_gasto) : "—"}
                         {task.historico_replanejamentos > 0 && (
                           <span className="ml-2 text-amber-600">↻{task.historico_replanejamentos}</span>
