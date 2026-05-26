@@ -76,7 +76,7 @@ export function CalendarView() {
     try {
       const task = addTask(name.trim(), projectId === "none" ? null : projectId, typeId === "none" ? null : typeId);
       const start = newSlot.startMin;
-      const end = Math.min(start + Math.max(SLOT_MINUTES, durationMin), 24 * 60);
+      const end = Math.min(start + Math.max(SLOT_MINUTES, durationMin), 19 * 60);
       addSchedule(task.id, newSlot.date, minutesToTime(start), minutesToTime(end));
       toast.success("Tarefa criada e agendada");
       setNewSlot(null);
