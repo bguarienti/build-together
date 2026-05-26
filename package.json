@@ -8,6 +8,7 @@
     "build": "vite build",
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
+    "predeploy": "npm run build",
     "deploy": "gh-pages -d dist -b gh-pages",
     "postinstall": "node -e \"const fs=require('fs'),p='node_modules/@vitejs/plugin-react/dist/index.js';try{let s=fs.readFileSync(p,'utf8');if(s.includes('vite/internal')){s=s.replace(/\\(await import\\(\\\"vite\\/internal\\\"\\)\\)\\.reactRefreshWrapperPlugin/g,'undefined');fs.writeFileSync(p,s);}}catch(e){}\""
   },
