@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { DragDropContext, Droppable, Draggable, type DropResult } from "@hello-pangea/dnd";
 import { ChevronLeft, ChevronRight, X, GripVertical, AlertTriangle, Plus, ChevronUp, ChevronDown, CheckCircle2, XCircle, RotateCcw, Trash2, Check, Ban } from "lucide-react";
 import { useAppContext } from "@/hooks/useAppContext";
@@ -42,6 +42,10 @@ export function CalendarView() {
   const [tempoH, setTempoH] = useState("");
   const [tempoM, setTempoM] = useState("");
   const [notes, setNotes] = useState("");
+
+  useEffect(() => {
+    setNotes(actionTask?.anotacoes ?? "");
+  }, [actionTask?.id]);
 
   const weekDates = getWeekDates(currentWeek);
   const projects = getProjects();
@@ -421,10 +425,30 @@ export function CalendarView() {
               {actionTask && `Estado: ${actionTask.estado}`}
             </DialogDescription>
           </DialogHeader>
+
+          {actionTask && (
+            <div className="space-y-1.5">
+              <Label htmlFor="cal-notes">Anotações</Label>
+              <Textarea
+                id="cal-notes"
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                onBlur={() => {
+                  if ((actionTask.anotacoes ?? "") !== notes) {
+                    updateTask(actionTask.id, { anotacoes: notes });
+                  }
+                }}
+                rows={3}
+                maxLength={2000}
+                placeholder="Notas, contexto, links…"
+              />
+            </div>
+          )}
+
           <div className="grid grid-cols-2 gap-2">
             {actionTask && (actionTask.estado === "aberta" || actionTask.estado === "agendada") && (
               <>
-                <Button variant="outline" onClick={() => { setCompleteOpen(true); setTempoGasto(""); }}>
+                <Button variant="outline" onClick={() => { setCompleteOpen(true); setTempoH(""); setTempoM(""); }}>
                   <CheckCircle2 className="mr-2 h-4 w-4 text-emerald-600" /> Concluir
                 </Button>
                 <Button variant="outline" onClick={() => {
@@ -458,6 +482,37 @@ export function CalendarView() {
           </div>
           <DialogFooter>
             <Button variant="ghost" onClick={() => setActionTask(null)}>Fechar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de conclusão (tempo gasto) */}
+      <Dialog open={completeOpen} onOpenChange={(o) => { setCompleteOpen(o); if (!o) { setTempoH(""); setTempoM(""); } }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Concluir tarefa</DialogTitle>
+            <DialogDescription>{actionTask?.nome}</DialogDescription>
+          </DialogHeader>
+          <HoursMinutesInput
+            hours={tempoH}
+            minutes={tempoM}
+            onHoursChange={setTempoH}
+            onMinutesChange={setTempoM}
+            idPrefix="cal-tempo"
+            autoFocus
+          />
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setCompleteOpen(false)}>Cancelar</Button>
+            <Button onClick={() => {
+              try {
+                const t = toDecimalHours(tempoH, tempoM);
+                completeTask(actionTask.id, t);
+                toast.success("Tarefa concluída");
+                setCompleteOpen(false); setActionTask(null); setTempoH(""); setTempoM("");
+              } catch (err: any) {
+                toast.error(err.message);
+              }
+            }}>Concluir</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
