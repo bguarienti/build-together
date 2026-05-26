@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { DragDropContext, Droppable, Draggable, type DropResult } from "@hello-pangea/dnd";
-import { ChevronLeft, ChevronRight, X, GripVertical, AlertTriangle, Plus, ChevronUp, ChevronDown, CheckCircle2, XCircle, RotateCcw, Trash2, Check, Ban, ClipboardList } from "lucide-react";
+import { ChevronLeft, ChevronRight, X, GripVertical, AlertTriangle, Plus, ChevronUp, ChevronDown, CheckCircle2, XCircle, RotateCcw, Trash2, Check, Ban, ClipboardList, CalendarIcon } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAppContext } from "@/hooks/useAppContext";
 import {
@@ -23,6 +23,9 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Textarea } from "@/components/ui/textarea";
 import { HoursMinutesInput, toDecimalHours } from "@/components/app/HoursMinutesInput";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+
 
 type NewSlot = { date: string; startMin: number } | null;
 
