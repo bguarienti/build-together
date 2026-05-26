@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { DragDropContext, Droppable, Draggable, type DropResult } from "@hello-pangea/dnd";
-import { ChevronLeft, ChevronRight, X, GripVertical, AlertTriangle, Plus, ChevronUp, ChevronDown, CheckCircle2, XCircle, RotateCcw, Trash2, Check, Ban } from "lucide-react";
+import { ChevronLeft, ChevronRight, X, GripVertical, AlertTriangle, Plus, ChevronUp, ChevronDown, CheckCircle2, XCircle, RotateCcw, Trash2, Check, Ban, ClipboardList } from "lucide-react";
+import { Link } from "react-router-dom";
 import { useAppContext } from "@/hooks/useAppContext";
 import {
   getWeekDates, getWeekRange, addDays, SLOTS, SLOT_MINUTES,
@@ -29,7 +30,7 @@ type NewSlot = { date: string; startMin: number } | null;
 const SLOT_H = 16;
 
 export function CalendarView() {
-  const { state, getTasks, getProjects, getTaskTypes, addTask, addSchedule, rescheduleTask, unscheduleTask, completeTask, cancelTask, reopenTask, deleteTask, updateTask } = useAppContext();
+  const { state, getTasks, getProjects, getTaskTypes, addTask, addSchedule, rescheduleTask, unscheduleTask, completeTask, cancelTask, reopenTask, deleteTask, updateTask, getTodosByDeadline } = useAppContext();
   const [currentWeek, setCurrentWeek] = useState<Date>(new Date());
   const [newSlot, setNewSlot] = useState<NewSlot>(null);
   const [name, setName] = useState("");
@@ -218,6 +219,8 @@ export function CalendarView() {
               <div className="sticky top-0 z-10 border-b border-r bg-card" />
               {weekDates.map((date) => {
                 const today = isToday(date);
+                const dateStr = formatDate(date);
+                const dueTodos = getTodosByDeadline(dateStr);
                 return (
                   <div
                     key={date.toISOString()}
@@ -228,6 +231,16 @@ export function CalendarView() {
                   >
                     <p className="text-xs uppercase text-muted-foreground">{getDayNameShort(date)}</p>
                     <p className={cn("text-sm font-semibold", today && "text-primary")}>{formatDateBR(date)}</p>
+                    {dueTodos.length > 0 && (
+                      <Link
+                        to="/todos"
+                        title={`${dueTodos.length} TODO(s) com prazo: ${dueTodos.map((t: any) => t.titulo).join(", ")}`}
+                        className="mt-1 inline-flex items-center gap-1 rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-medium text-amber-800 hover:bg-amber-200"
+                      >
+                        <ClipboardList className="h-2.5 w-2.5" />
+                        {dueTodos.length} TODO{dueTodos.length > 1 ? "s" : ""}
+                      </Link>
+                    )}
                   </div>
                 );
               })}
