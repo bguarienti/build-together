@@ -73,11 +73,5 @@
     "tailwindcss": "^4.2.4",
     "typescript": "^5.9.3",
     "vite": "^7.0.0"
-  },
-  "overrides": {
-    "@vitejs/plugin-react": "5.0.4"
-  },
-  "resolutions": {
-    "@vitejs/plugin-react": "5.0.4"
   }
 }
