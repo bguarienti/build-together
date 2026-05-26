@@ -3,8 +3,9 @@ import { useAppContext } from "@/hooks/useAppContext";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { calculateHoursByTaskType } from "@/utils/metrics";
-import { AlertTriangle, Clock, CheckCircle2, RotateCw, XCircle } from "lucide-react";
+import { calculateHoursByTaskType, calculateDelayMetrics } from "@/utils/metrics";
+import { formatHoursMinutes } from "@/components/app/HoursMinutesInput";
+import { AlertTriangle, Clock, CheckCircle2, RotateCw, XCircle, TrendingUp, TrendingDown } from "lucide-react";
 
 export function MetricsView() {
   const { state, getAllMetrics } = useAppContext();
@@ -12,6 +13,10 @@ export function MetricsView() {
   const typeMetrics = useMemo(
     () => calculateHoursByTaskType(state.tasks, state.taskTypes),
     [state.tasks, state.taskTypes]
+  );
+  const delayOverall = useMemo(
+    () => calculateDelayMetrics(state.tasks, state.schedules),
+    [state.tasks, state.schedules]
   );
 
   const totalHours = metrics.por_projeto.reduce((s: number, m: any) => s + m.tempo_gasto_total, 0) + metrics.ofensoras.tempo_gasto_total;
@@ -77,6 +82,66 @@ export function MetricsView() {
           </Card>
         </section>
       )}
+
+      {/* Atrasos: planejado vs realizado */}
+      <section>
+        <header className="mb-3">
+          <h2 className="text-base font-semibold">Planejado vs realizado</h2>
+          <p className="text-xs text-muted-foreground">
+            Compara a duração agendada com o tempo gasto nas tarefas concluídas
+          </p>
+        </header>
+        {delayOverall.avaliadas === 0 ? (
+          <p className="rounded-md border border-dashed py-6 text-center text-sm text-muted-foreground">
+            Nenhuma tarefa concluída com agendamento ainda.
+          </p>
+        ) : (
+          <Card>
+            <CardContent className="grid gap-4 p-4 md:grid-cols-4">
+              <DelayStat
+                label="Avaliadas"
+                value={String(delayOverall.avaliadas)}
+                icon={CheckCircle2}
+                color="text-foreground"
+              />
+              <DelayStat
+                label="Atrasadas"
+                value={`${delayOverall.atrasadas} / ${delayOverall.avaliadas}`}
+                icon={TrendingUp}
+                color="text-amber-600"
+              />
+              <DelayStat
+                label="Atraso médio"
+                value={
+                  delayOverall.atraso_medio_horas >= 0
+                    ? `+${formatHoursMinutes(Math.abs(delayOverall.atraso_medio_horas))}`
+                    : `-${formatHoursMinutes(Math.abs(delayOverall.atraso_medio_horas))}`
+                }
+                icon={delayOverall.atraso_medio_horas >= 0 ? TrendingUp : TrendingDown}
+                color={delayOverall.atraso_medio_horas > 0 ? "text-amber-600" : "text-emerald-600"}
+              />
+              <DelayStat
+                label="Desvio total"
+                value={`${delayOverall.desvio_pct > 0 ? "+" : ""}${delayOverall.desvio_pct}%`}
+                icon={Clock}
+                color={delayOverall.desvio_pct > 0 ? "text-amber-600" : "text-emerald-600"}
+              />
+            </CardContent>
+          </Card>
+        )}
+      </section>
+    </div>
+  );
+}
+
+function DelayStat({ icon: Icon, label, value, color }: any) {
+  return (
+    <div className="flex items-start gap-2">
+      <Icon className={`mt-0.5 h-4 w-4 ${color}`} />
+      <div>
+        <p className="text-xs text-muted-foreground">{label}</p>
+        <p className={`font-mono text-lg font-semibold ${color}`}>{value}</p>
+      </div>
     </div>
   );
 }

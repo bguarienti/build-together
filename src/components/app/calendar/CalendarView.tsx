@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { DragDropContext, Droppable, Draggable, type DropResult } from "@hello-pangea/dnd";
 import { ChevronLeft, ChevronRight, X, GripVertical, AlertTriangle, Plus, ChevronUp, ChevronDown, CheckCircle2, XCircle, RotateCcw, Trash2, Check, Ban } from "lucide-react";
 import { useAppContext } from "@/hooks/useAppContext";
@@ -20,6 +20,8 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { Textarea } from "@/components/ui/textarea";
+import { HoursMinutesInput, toDecimalHours } from "@/components/app/HoursMinutesInput";
 
 type NewSlot = { date: string; startMin: number } | null;
 
@@ -27,7 +29,7 @@ type NewSlot = { date: string; startMin: number } | null;
 const SLOT_H = 16;
 
 export function CalendarView() {
-  const { state, getTasks, getProjects, getTaskTypes, addTask, addSchedule, rescheduleTask, unscheduleTask, completeTask, cancelTask, reopenTask, deleteTask } = useAppContext();
+  const { state, getTasks, getProjects, getTaskTypes, addTask, addSchedule, rescheduleTask, unscheduleTask, completeTask, cancelTask, reopenTask, deleteTask, updateTask } = useAppContext();
   const [currentWeek, setCurrentWeek] = useState<Date>(new Date());
   const [newSlot, setNewSlot] = useState<NewSlot>(null);
   const [name, setName] = useState("");
@@ -37,7 +39,13 @@ export function CalendarView() {
   const [isMinimized, setIsMinimized] = useState(false);
   const [actionTask, setActionTask] = useState<any | null>(null);
   const [completeOpen, setCompleteOpen] = useState(false);
-  const [tempoGasto, setTempoGasto] = useState("");
+  const [tempoH, setTempoH] = useState("");
+  const [tempoM, setTempoM] = useState("");
+  const [notes, setNotes] = useState("");
+
+  useEffect(() => {
+    setNotes(actionTask?.anotacoes ?? "");
+  }, [actionTask?.id]);
 
   const weekDates = getWeekDates(currentWeek);
   const projects = getProjects();
@@ -417,10 +425,30 @@ export function CalendarView() {
               {actionTask && `Estado: ${actionTask.estado}`}
             </DialogDescription>
           </DialogHeader>
+
+          {actionTask && (
+            <div className="space-y-1.5">
+              <Label htmlFor="cal-notes">Anotações</Label>
+              <Textarea
+                id="cal-notes"
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                onBlur={() => {
+                  if ((actionTask.anotacoes ?? "") !== notes) {
+                    updateTask(actionTask.id, { anotacoes: notes });
+                  }
+                }}
+                rows={3}
+                maxLength={2000}
+                placeholder="Notas, contexto, links…"
+              />
+            </div>
+          )}
+
           <div className="grid grid-cols-2 gap-2">
             {actionTask && (actionTask.estado === "aberta" || actionTask.estado === "agendada") && (
               <>
-                <Button variant="outline" onClick={() => { setCompleteOpen(true); setTempoGasto(""); }}>
+                <Button variant="outline" onClick={() => { setCompleteOpen(true); setTempoH(""); setTempoM(""); }}>
                   <CheckCircle2 className="mr-2 h-4 w-4 text-emerald-600" /> Concluir
                 </Button>
                 <Button variant="outline" onClick={() => {
@@ -459,34 +487,28 @@ export function CalendarView() {
       </Dialog>
 
       {/* Modal de conclusão (tempo gasto) */}
-      <Dialog open={completeOpen} onOpenChange={(o) => { setCompleteOpen(o); if (!o) setTempoGasto(""); }}>
+      <Dialog open={completeOpen} onOpenChange={(o) => { setCompleteOpen(o); if (!o) { setTempoH(""); setTempoM(""); } }}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Concluir tarefa</DialogTitle>
             <DialogDescription>{actionTask?.nome}</DialogDescription>
           </DialogHeader>
-          <div className="space-y-2">
-            <Label htmlFor="cal-tempo">Tempo gasto (horas)</Label>
-            <Input
-              id="cal-tempo"
-              type="number"
-              step="0.25"
-              min="0.25"
-              placeholder="Ex: 2.5"
-              value={tempoGasto}
-              onChange={(e) => setTempoGasto(e.target.value)}
-              autoFocus
-            />
-          </div>
+          <HoursMinutesInput
+            hours={tempoH}
+            minutes={tempoM}
+            onHoursChange={setTempoH}
+            onMinutesChange={setTempoM}
+            idPrefix="cal-tempo"
+            autoFocus
+          />
           <DialogFooter>
             <Button variant="ghost" onClick={() => setCompleteOpen(false)}>Cancelar</Button>
             <Button onClick={() => {
               try {
-                const t = parseFloat(tempoGasto);
-                if (!t || t <= 0) throw new Error("Tempo gasto deve ser positivo");
+                const t = toDecimalHours(tempoH, tempoM);
                 completeTask(actionTask.id, t);
                 toast.success("Tarefa concluída");
-                setCompleteOpen(false); setActionTask(null); setTempoGasto("");
+                setCompleteOpen(false); setActionTask(null); setTempoH(""); setTempoM("");
               } catch (err: any) {
                 toast.error(err.message);
               }
