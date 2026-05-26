@@ -130,7 +130,7 @@ export function CalendarView() {
                 <div
                   ref={provided.innerRef}
                   {...provided.droppableProps}
-                  className="flex min-w-0 flex-1 items-center gap-2"
+                  className="flex min-w-0 flex-1 flex-wrap items-center gap-2"
                 >
                   {openTasks.length === 0 ? (
                     <span className="text-xs text-muted-foreground">Sem tarefas abertas</span>
@@ -139,87 +139,65 @@ export function CalendarView() {
                       const project = projects.find((p: any) => p.id === task.projeto_id);
                       const type = task.task_type_id ? taskTypes.find((t: any) => t.id === task.task_type_id) : null;
                       const isOffender = !task.projeto_id;
-                      const hidden = index > 0;
+                      const hidden = !tasksExpanded && index > 0;
                       return (
                         <Draggable key={task.id} draggableId={task.id} index={index}>
-                          {(p, snap) => {
-                            const chip = (
-                              <div
-                                ref={p.innerRef}
-                                {...p.draggableProps}
-                                {...p.dragHandleProps}
-                                className={cn(
-                                  "group flex max-w-[260px] shrink-0 items-center gap-1.5 rounded-md border bg-background px-2 py-1 text-xs shadow-sm transition",
-                                  snap.isDragging && "ring-2 ring-primary",
-                                  isOffender && "border-destructive/40",
-                                  hidden && !snap.isDragging && "hidden"
-                                )}
-                                style={p.draggableProps.style}
-                              >
-                                <div className="h-3 w-1 rounded" style={{ backgroundColor: getProjectColor(task.projeto_id) }} />
-                                <GripVertical className="h-3 w-3 text-muted-foreground" />
-                                <span className="truncate font-medium">{task.nome}</span>
-                                {project && <Badge variant="outline" className="h-4 px-1 text-[10px]">{project.nome}</Badge>}
-                                {type && (
-                                  <Badge style={{ backgroundColor: type.cor }} className="h-4 px-1 text-[10px] text-white">
-                                    {type.nome}
-                                  </Badge>
-                                )}
-                                {isOffender && <AlertTriangle className="h-3 w-3 text-destructive" />}
-                              </div>
-                            );
-                            return chip;
-                          }}
+                          {(p, snap) => (
+                            <div
+                              ref={p.innerRef}
+                              {...p.draggableProps}
+                              {...p.dragHandleProps}
+                              className={cn(
+                                "group flex max-w-[260px] shrink-0 items-center gap-1.5 rounded-md border bg-background px-2 py-1 text-xs shadow-sm transition",
+                                snap.isDragging && "ring-2 ring-primary",
+                                isOffender && "border-destructive/40",
+                                hidden && !snap.isDragging && "hidden"
+                              )}
+                              style={p.draggableProps.style}
+                            >
+                              <div className="h-3 w-1 rounded" style={{ backgroundColor: getProjectColor(task.projeto_id) }} />
+                              <GripVertical className="h-3 w-3 text-muted-foreground" />
+                              <span className="truncate font-medium">{task.nome}</span>
+                              {project && <Badge variant="outline" className="h-4 px-1 text-[10px]">{project.nome}</Badge>}
+                              {type && (
+                                <Badge style={{ backgroundColor: type.cor }} className="h-4 px-1 text-[10px] text-white">
+                                  {type.nome}
+                                </Badge>
+                              )}
+                              {isOffender && <AlertTriangle className="h-3 w-3 text-destructive" />}
+                            </div>
+                          )}
                         </Draggable>
                       );
                     })
                   )}
                   {provided.placeholder}
                   {openTasks.length > 1 && (
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button variant="outline" size="sm" className="h-7 shrink-0 px-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="h-7 shrink-0 px-2"
+                      onClick={() => setTasksExpanded((v) => !v)}
+                      title={tasksExpanded ? "Recolher" : "Mostrar todas para arrastar"}
+                    >
+                      {tasksExpanded ? (
+                        <>
+                          <ChevronUp className="mr-1 h-3.5 w-3.5" />
+                          recolher
+                        </>
+                      ) : (
+                        <>
                           <Plus className="mr-1 h-3.5 w-3.5" />
                           {openTasks.length - 1}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent align="start" className="w-80 p-2">
-                        <p className="mb-2 px-1 text-[11px] text-muted-foreground">
-                          Arraste para o calendário
-                        </p>
-                        <div className="max-h-72 space-y-1 overflow-y-auto">
-                          {openTasks.slice(1).map((task: any) => {
-                            const project = projects.find((p: any) => p.id === task.projeto_id);
-                            const type = task.task_type_id ? taskTypes.find((t: any) => t.id === task.task_type_id) : null;
-                            const isOffender = !task.projeto_id;
-                            // Mirror chip — actual Draggable lives in the topbar row (hidden) and becomes visible only while dragging.
-                            // Clicking here triggers a synthetic drag is not trivial; instead we expose a visual list and the user drags from the chip area.
-                            return (
-                              <div
-                                key={task.id}
-                                className={cn(
-                                  "flex items-center gap-1.5 rounded-md border bg-background px-2 py-1 text-xs",
-                                  isOffender && "border-destructive/40"
-                                )}
-                              >
-                                <div className="h-3 w-1 rounded" style={{ backgroundColor: getProjectColor(task.projeto_id) }} />
-                                <span className="flex-1 truncate font-medium">{task.nome}</span>
-                                {project && <Badge variant="outline" className="h-4 px-1 text-[10px]">{project.nome}</Badge>}
-                                {type && (
-                                  <Badge style={{ backgroundColor: type.cor }} className="h-4 px-1 text-[10px] text-white">
-                                    {type.nome}
-                                  </Badge>
-                                )}
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </PopoverContent>
-                    </Popover>
+                        </>
+                      )}
+                    </Button>
                   )}
                 </div>
               )}
             </Droppable>
+
 
             <div className="flex shrink-0 items-center gap-1">
               <Button variant="outline" size="sm" onClick={() => setCurrentWeek(addDays(currentWeek, -7))}>
