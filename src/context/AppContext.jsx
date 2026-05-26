@@ -107,6 +107,9 @@ export function AppContextProvider({ children }) {
       tasks: prev.tasks.map((t) =>
         t.id === id ? { ...t, ativo: false } : t
       ),
+      schedules: prev.schedules.map((s) =>
+        s.tarefa_id === id ? { ...s, ativo: false } : s
+      ),
     }));
   }, []);
 
