@@ -74,14 +74,27 @@ export function Dashboard() {
                   {todaySchedules.map((s: any) => {
                     const task = state.tasks.find((t: any) => t.id === s.tarefa_id);
                     const project = projects.find((p: any) => p.id === task?.projeto_id);
+                    const type = task?.task_type_id ? state.taskTypes.find((t: any) => t.id === task.task_type_id) : null;
                     return (
                       <li key={s.id} className="flex items-center gap-3 rounded-md border bg-card p-3">
                         <div className="w-1 self-stretch rounded" style={{ backgroundColor: project?.cor || "hsl(var(--muted-foreground))" }} />
-                        <div className="flex-1">
+                        <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium">{task?.nome ?? "(tarefa removida)"}</p>
-                          {project && <p className="text-xs text-muted-foreground">{project.nome}</p>}
+                          <div className="flex flex-wrap items-center gap-1 mt-0.5">
+                            {project && <span className="text-xs text-muted-foreground">{project.nome}</span>}
+                            {type && (
+                              <Badge style={{ backgroundColor: type.cor }} className="h-3.5 px-1 text-[9px] text-white leading-none">
+                                {type.nome}
+                              </Badge>
+                            )}
+                            {task && (
+                              <Badge variant="secondary" className={cn("h-3.5 px-1 text-[9px] leading-none", STATE_VARIANT[task.estado]?.className)}>
+                                {STATE_VARIANT[task.estado]?.label ?? task.estado}
+                              </Badge>
+                            )}
+                          </div>
                         </div>
-                        <Badge variant="outline" className="font-mono text-xs">
+                        <Badge variant="outline" className="font-mono text-xs shrink-0">
                           {s.hora_inicio}–{s.hora_fim}
                         </Badge>
                       </li>
