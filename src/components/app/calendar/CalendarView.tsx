@@ -1,17 +1,32 @@
 import { useState } from "react";
 import { DragDropContext, Droppable, Draggable, type DropResult } from "@hello-pangea/dnd";
-import { ChevronLeft, ChevronRight, X, GripVertical, AlertTriangle } from "lucide-react";
+import { ChevronLeft, ChevronRight, X, GripVertical, AlertTriangle, Plus } from "lucide-react";
 import { useAppContext } from "@/hooks/useAppContext";
 import { getWeekDates, getWeekRange, addDays, HOURS, formatTime, formatDate, formatDateBR, getDayNameShort, isToday } from "@/utils/date";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
+type NewSlot = { date: string; hour: number } | null;
+
 export function CalendarView() {
-  const { state, getTasks, getProjects, getTaskTypes, addSchedule, rescheduleTask, unscheduleTask } = useAppContext();
+  const { state, getTasks, getProjects, getTaskTypes, addTask, addSchedule, rescheduleTask, unscheduleTask } = useAppContext();
   const [currentWeek, setCurrentWeek] = useState<Date>(new Date());
+  const [newSlot, setNewSlot] = useState<NewSlot>(null);
+  const [name, setName] = useState("");
+  const [projectId, setProjectId] = useState<string>("none");
+  const [typeId, setTypeId] = useState<string>("none");
+  const [duration, setDuration] = useState<number>(1);
 
   const weekDates = getWeekDates(currentWeek);
   const projects = getProjects();
@@ -20,6 +35,28 @@ export function CalendarView() {
 
   const getProjectColor = (projectId: string | null) =>
     projects.find((p: any) => p.id === projectId)?.cor || "hsl(var(--muted-foreground))";
+
+  const openNewSlot = (date: string, hour: number) => {
+    setNewSlot({ date, hour });
+    setName("");
+    setProjectId("none");
+    setTypeId("none");
+    setDuration(1);
+  };
+
+  const submitNewSlot = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newSlot) return;
+    try {
+      const task = addTask(name.trim(), projectId === "none" ? null : projectId, typeId === "none" ? null : typeId);
+      const endHour = Math.min(newSlot.hour + Math.max(1, Math.round(duration)), 24);
+      addSchedule(task.id, newSlot.date, formatTime(newSlot.hour), formatTime(endHour));
+      toast.success("Tarefa criada e agendada");
+      setNewSlot(null);
+    } catch (err: any) {
+      toast.error(err.message ?? "Erro ao criar");
+    }
+  };
 
   const handleDragEnd = (result: DropResult) => {
     const { source, destination, draggableId } = result;
@@ -60,6 +97,9 @@ export function CalendarView() {
           <div className="border-b p-3">
             <p className="text-sm font-semibold">Tarefas abertas</p>
             <p className="text-xs text-muted-foreground">{openTasks.length} para agendar</p>
+            <p className="mt-1 text-[11px] text-muted-foreground">
+              Dica: clique num horário vazio para criar já agendada.
+            </p>
           </div>
           <Droppable droppableId="tasks-list" type="SCHEDULE">
             {(provided, snapshot) => (
@@ -170,6 +210,7 @@ export function CalendarView() {
                     const daySchedules = state.schedules.filter(
                       (s: any) => s.ativo && s.data === dateStr && parseInt(s.hora_inicio.split(":")[0], 10) === hour
                     );
+                    const isEmpty = daySchedules.length === 0;
                     return (
                       <Droppable
                         key={`${dateStr}-${hour}`}
@@ -180,12 +221,19 @@ export function CalendarView() {
                           <div
                             ref={provided.innerRef}
                             {...provided.droppableProps}
+                            onClick={() => isEmpty && openNewSlot(dateStr, hour)}
                             className={cn(
-                              "relative min-h-[56px] border-b border-r p-1 transition-colors",
+                              "group/slot relative min-h-[56px] border-b border-r p-1 transition-colors",
+                              isEmpty && "cursor-pointer hover:bg-primary/5",
                               snapshot.isDraggingOver && "bg-primary/10",
                               isToday(date) && "bg-primary/[0.02]"
                             )}
                           >
+                            {isEmpty && (
+                              <div className="pointer-events-none flex h-full items-center justify-center opacity-0 transition group-hover/slot:opacity-100">
+                                <Plus className="h-4 w-4 text-muted-foreground" />
+                              </div>
+                            )}
                             {daySchedules.map((s: any, idx: number) => {
                               const task = state.tasks.find((t: any) => t.id === s.tarefa_id);
                               if (!task) return null;
@@ -198,6 +246,7 @@ export function CalendarView() {
                                       ref={p.innerRef}
                                       {...p.draggableProps}
                                       {...p.dragHandleProps}
+                                      onClick={(e) => e.stopPropagation()}
                                       className={cn(
                                         "group mb-1 rounded-md border-l-4 bg-background p-1.5 text-[11px] shadow-sm transition",
                                         snap.isDragging && "ring-2 ring-primary"
@@ -238,6 +287,61 @@ export function CalendarView() {
           </ScrollArea>
         </div>
       </div>
+
+      <Dialog open={!!newSlot} onOpenChange={(o) => !o && setNewSlot(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Nova tarefa agendada</DialogTitle>
+            <DialogDescription>
+              {newSlot && `${formatDateBR(new Date(newSlot.date + "T00:00:00"))} às ${formatTime(newSlot.hour)}`}
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={submitNewSlot} className="space-y-3">
+            <div className="space-y-1.5">
+              <Label htmlFor="ns-name">Nome</Label>
+              <Input id="ns-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Ex: Revisar proposta" autoFocus maxLength={255} />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label>Projeto</Label>
+                <Select value={projectId} onValueChange={setProjectId}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Sem projeto</SelectItem>
+                    {projects.map((p: any) => <SelectItem key={p.id} value={p.id}>{p.nome}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label>Tipo</Label>
+                <Select value={typeId} onValueChange={setTypeId}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Sem tipo</SelectItem>
+                    {taskTypes.map((t: any) => <SelectItem key={t.id} value={t.id}>{t.nome}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="ns-dur">Duração (horas)</Label>
+              <Input
+                id="ns-dur"
+                type="number"
+                min={1}
+                max={12}
+                step={1}
+                value={duration}
+                onChange={(e) => setDuration(parseInt(e.target.value || "1", 10))}
+              />
+            </div>
+            <DialogFooter>
+              <Button type="button" variant="ghost" onClick={() => setNewSlot(null)}>Cancelar</Button>
+              <Button type="submit">Criar e agendar</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </DragDropContext>
   );
 }
