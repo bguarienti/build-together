@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Plus, Trash2, CheckCircle2, XCircle, AlertTriangle, X, CalendarIcon, RotateCcw, StickyNote } from "lucide-react";
+import { Plus, Trash2, CheckCircle2, XCircle, AlertTriangle, X, CalendarIcon, RotateCcw, StickyNote, ClipboardList } from "lucide-react";
 import { format } from "date-fns";
 import { useAppContext } from "@/hooks/useAppContext";
 import { Card, CardContent } from "@/components/ui/card";
@@ -35,7 +35,7 @@ const STATE_VARIANT: Record<string, { label: string; className: string }> = {
 };
 
 export function TasksView() {
-  const { getTasks, getProjects, getTaskTypes, addTask, addSchedule, deleteTask, completeTask, cancelTask, reopenTask, updateTask } = useAppContext();
+  const { getTasks, getProjects, getTaskTypes, addTask, addSchedule, deleteTask, completeTask, cancelTask, reopenTask, updateTask, getTodosByTask, addTodo, completeTodo, deleteTodo } = useAppContext();
   const tasks = getTasks();
   const projects = getProjects();
   const types = getTaskTypes();
@@ -55,6 +55,8 @@ export function TasksView() {
   const [tempoM, setTempoM] = useState("");
   const [notesTarget, setNotesTarget] = useState<any | null>(null);
   const [notes, setNotes] = useState("");
+  const [newTodoTitle, setNewTodoTitle] = useState("");
+  const [newTodoDate, setNewTodoDate] = useState<Date | undefined>(undefined);
 
   useEffect(() => {
     setNotes(notesTarget?.anotacoes ?? "");
@@ -360,8 +362,8 @@ export function TasksView() {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={!!notesTarget} onOpenChange={(o) => !o && setNotesTarget(null)}>
-        <DialogContent>
+      <Dialog open={!!notesTarget} onOpenChange={(o) => { if (!o) { setNotesTarget(null); setNewTodoTitle(""); setNewTodoDate(undefined); } }}>
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Anotações</DialogTitle>
             <DialogDescription>{notesTarget?.nome}</DialogDescription>
@@ -369,11 +371,94 @@ export function TasksView() {
           <Textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            rows={6}
+            rows={5}
             maxLength={2000}
             placeholder="Notas, contexto, links…"
             autoFocus
           />
+
+          {notesTarget && (
+            <div className="space-y-2 rounded-md border bg-muted/30 p-3">
+              <div className="flex items-center gap-2 text-sm font-semibold">
+                <ClipboardList className="h-4 w-4" /> TODOs desta tarefa
+              </div>
+
+              <div className="space-y-1">
+                {getTodosByTask(notesTarget.id).length === 0 && (
+                  <p className="text-xs text-muted-foreground">Nenhum TODO ainda.</p>
+                )}
+                {getTodosByTask(notesTarget.id).map((td: any) => (
+                  <div key={td.id} className="flex items-center gap-2 rounded border bg-background px-2 py-1 text-sm">
+                    <button
+                      type="button"
+                      onClick={() => { completeTodo(td.id); toast.success("TODO concluído"); }}
+                      disabled={td.estado !== "aberta"}
+                      className="text-muted-foreground hover:text-emerald-600 disabled:opacity-40"
+                    >
+                      <CheckCircle2 className={cn("h-4 w-4", td.estado === "concluída" && "text-emerald-600")} />
+                    </button>
+                    <span className={cn("flex-1", td.estado === "concluída" && "line-through text-muted-foreground", td.estado === "cancelada" && "line-through text-muted-foreground italic")}>
+                      {td.titulo}
+                    </span>
+                    {td.prazo && (
+                      <span className="font-mono text-[10px] text-muted-foreground">
+                        {format(new Date(td.prazo + "T00:00:00"), "dd/MM")}
+                      </span>
+                    )}
+                    <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => { deleteTodo(td.id); }}>
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2 pt-2">
+                <Input
+                  value={newTodoTitle}
+                  onChange={(e) => setNewTodoTitle(e.target.value)}
+                  placeholder="Novo TODO..."
+                  className="h-8 flex-1 min-w-[180px]"
+                  maxLength={255}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && newTodoTitle.trim()) {
+                      e.preventDefault();
+                      try {
+                        addTodo(notesTarget.id, newTodoTitle.trim(), newTodoDate ? formatDate(newTodoDate) : null);
+                        setNewTodoTitle(""); setNewTodoDate(undefined);
+                      } catch (err: any) { toast.error(err.message); }
+                    }
+                  }}
+                />
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button type="button" variant="outline" size="sm" className="h-8">
+                      <CalendarIcon className="mr-1 h-3.5 w-3.5" />
+                      {newTodoDate ? format(newTodoDate, "dd/MM") : "Prazo"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="end">
+                    <Calendar mode="single" selected={newTodoDate} onSelect={setNewTodoDate} initialFocus className={cn("p-3 pointer-events-auto")} />
+                  </PopoverContent>
+                </Popover>
+                <Button
+                  type="button"
+                  size="sm"
+                  className="h-8"
+                  disabled={!newTodoTitle.trim()}
+                  onClick={() => {
+                    try {
+                      addTodo(notesTarget.id, newTodoTitle.trim(), newTodoDate ? formatDate(newTodoDate) : null);
+                      setNewTodoTitle(""); setNewTodoDate(undefined);
+                      toast.success("TODO criado");
+                    } catch (err: any) { toast.error(err.message); }
+                  }}
+                >
+                  <Plus className="mr-1 h-3.5 w-3.5" /> TODO
+                </Button>
+              </div>
+            </div>
+          )}
+
           <DialogFooter>
             <Button variant="ghost" onClick={() => setNotesTarget(null)}>Cancelar</Button>
             <Button onClick={() => {
@@ -381,7 +466,7 @@ export function TasksView() {
               updateTask(notesTarget.id, { anotacoes: notes });
               toast.success("Anotações salvas");
               setNotesTarget(null);
-            }}>Salvar</Button>
+            }}>Salvar anotações</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
