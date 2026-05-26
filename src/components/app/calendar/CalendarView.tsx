@@ -9,7 +9,7 @@ import {
 } from "@/utils/date";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
@@ -102,26 +102,30 @@ export function CalendarView() {
 
   return (
     <DragDropContext onDragEnd={handleDragEnd}>
-      <div className="grid h-[calc(100vh-6.5rem)] gap-4 lg:grid-cols-[280px_1fr]">
-        {/* Sidebar de tarefas abertas */}
-        <aside className="flex min-h-0 flex-col rounded-lg border bg-card">
-          <div className="border-b p-3">
-            <p className="text-sm font-semibold">Tarefas abertas</p>
-            <p className="text-xs text-muted-foreground">{openTasks.length} para agendar</p>
-            <p className="mt-1 text-[11px] text-muted-foreground">
-              Dica: clique num horário vazio para criar já agendada.
-            </p>
+      <div className="flex h-[calc(100vh-6.5rem)] flex-col gap-4">
+        {/* Faixa horizontal de tarefas abertas */}
+        <section className="flex flex-col rounded-lg border bg-card">
+          <div className="flex items-center justify-between gap-3 border-b px-3 py-2">
+            <div>
+              <p className="text-sm font-semibold">Tarefas abertas</p>
+              <p className="text-[11px] text-muted-foreground">
+                {openTasks.length} para agendar · arraste para o calendário ou clique num horário vazio
+              </p>
+            </div>
           </div>
-          <Droppable droppableId="tasks-list" type="SCHEDULE">
+          <Droppable droppableId="tasks-list" type="SCHEDULE" direction="horizontal">
             {(provided, snapshot) => (
-              <ScrollArea className="flex-1">
+              <ScrollArea className="w-full">
                 <div
                   ref={provided.innerRef}
                   {...provided.droppableProps}
-                  className={cn("space-y-2 p-3", snapshot.isDraggingOver && "bg-primary/5")}
+                  className={cn(
+                    "flex gap-2 p-3",
+                    snapshot.isDraggingOver && "bg-primary/5"
+                  )}
                 >
                   {openTasks.length === 0 ? (
-                    <p className="rounded-md border border-dashed py-6 text-center text-xs text-muted-foreground">
+                    <p className="w-full rounded-md border border-dashed py-4 text-center text-xs text-muted-foreground">
                       Sem tarefas abertas
                     </p>
                   ) : (
@@ -137,15 +141,15 @@ export function CalendarView() {
                               {...p.draggableProps}
                               {...p.dragHandleProps}
                               className={cn(
-                                "group flex items-start gap-2 rounded-md border bg-background p-2 text-sm shadow-sm transition",
+                                "group flex w-56 shrink-0 items-start gap-2 rounded-md border bg-background p-2 text-sm shadow-sm transition",
                                 snap.isDragging && "ring-2 ring-primary",
                                 isOffender && "border-destructive/40"
                               )}
                             >
                               <div className="w-1 self-stretch rounded" style={{ backgroundColor: getProjectColor(task.projeto_id) }} />
                               <GripVertical className="mt-0.5 h-3.5 w-3.5 text-muted-foreground opacity-0 transition group-hover:opacity-100" />
-                              <div className="flex-1 space-y-1">
-                                <p className="font-medium leading-tight">{task.nome}</p>
+                              <div className="min-w-0 flex-1 space-y-1">
+                                <p className="truncate font-medium leading-tight">{task.nome}</p>
                                 <div className="flex flex-wrap items-center gap-1">
                                   {project && <Badge variant="outline" className="h-4 px-1 text-[10px]">{project.nome}</Badge>}
                                   {type && (
@@ -168,13 +172,14 @@ export function CalendarView() {
                   )}
                   {provided.placeholder}
                 </div>
+                <ScrollBar orientation="horizontal" />
               </ScrollArea>
             )}
           </Droppable>
-        </aside>
+        </section>
 
         {/* Grid de calendário */}
-        <div className="flex min-h-0 flex-col rounded-lg border bg-card">
+        <div className="flex min-h-0 flex-1 flex-col rounded-lg border bg-card">
           <div className="flex items-center justify-between gap-2 border-b p-3">
             <Button variant="outline" size="sm" onClick={() => setCurrentWeek(addDays(currentWeek, -7))}>
               <ChevronLeft className="h-4 w-4" />
