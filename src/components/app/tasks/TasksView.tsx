@@ -139,33 +139,100 @@ export function TasksView() {
 
       {showForm && (
         <Card>
-          <CardContent className="p-4">
-            <form onSubmit={submit} className="grid gap-3 md:grid-cols-[2fr_1fr_1fr_auto] md:items-end">
-              <div className="space-y-1.5">
-                <Label htmlFor="t-name">Nome</Label>
-                <Input id="t-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Ex: Revisar proposta" autoFocus maxLength={255} />
+          <CardContent className="space-y-4 p-4">
+            <form onSubmit={submit} className="space-y-4">
+              <div className="grid gap-3 md:grid-cols-[2fr_1fr_1fr]">
+                <div className="space-y-1.5">
+                  <Label htmlFor="t-name">Nome</Label>
+                  <Input id="t-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Ex: Revisar proposta" autoFocus maxLength={255} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Projeto</Label>
+                  <Select value={projectId} onValueChange={setProjectId}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Sem projeto</SelectItem>
+                      {projects.map((p: any) => <SelectItem key={p.id} value={p.id}>{p.nome}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Tipo</Label>
+                  <Select value={typeId} onValueChange={setTypeId}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Sem tipo</SelectItem>
+                      {types.map((t: any) => <SelectItem key={t.id} value={t.id}>{t.nome}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
-              <div className="space-y-1.5">
-                <Label>Projeto</Label>
-                <Select value={projectId} onValueChange={setProjectId}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">Sem projeto</SelectItem>
-                    {projects.map((p: any) => <SelectItem key={p.id} value={p.id}>{p.nome}</SelectItem>)}
-                  </SelectContent>
-                </Select>
+
+              <div className="flex items-center gap-2">
+                <input
+                  id="t-sched"
+                  type="checkbox"
+                  checked={schedule}
+                  onChange={(e) => setSchedule(e.target.checked)}
+                  className="h-4 w-4"
+                />
+                <Label htmlFor="t-sched" className="cursor-pointer">Agendar agora</Label>
               </div>
-              <div className="space-y-1.5">
-                <Label>Tipo</Label>
-                <Select value={typeId} onValueChange={setTypeId}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">Sem tipo</SelectItem>
-                    {types.map((t: any) => <SelectItem key={t.id} value={t.id}>{t.nome}</SelectItem>)}
-                  </SelectContent>
-                </Select>
+
+              {schedule && (
+                <div className="grid gap-3 md:grid-cols-3">
+                  <div className="space-y-1.5">
+                    <Label>Data</Label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          className={cn("w-full justify-start text-left font-normal", !date && "text-muted-foreground")}
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {date ? format(date, "dd/MM/yyyy") : "Selecione"}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={date}
+                          onSelect={setDate}
+                          initialFocus
+                          className={cn("p-3 pointer-events-auto")}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>Início</Label>
+                    <Select value={startTime} onValueChange={setStartTime}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent className="max-h-72">
+                        {timeOptions.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>Duração</Label>
+                    <Select value={String(durationMin)} onValueChange={(v) => setDurationMin(parseInt(v, 10))}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {[15, 30, 45, 60, 75, 90, 105, 120, 150, 180, 240].map((m) => (
+                          <SelectItem key={m} value={String(m)}>
+                            {m < 60 ? `${m} min` : m % 60 === 0 ? `${m / 60} h` : `${Math.floor(m / 60)}h ${m % 60}min`}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              )}
+
+              <div className="flex justify-end">
+                <Button type="submit">{schedule ? "Criar e agendar" : "Criar"}</Button>
               </div>
-              <Button type="submit">Criar</Button>
             </form>
           </CardContent>
         </Card>
