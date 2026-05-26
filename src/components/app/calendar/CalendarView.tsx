@@ -42,6 +42,7 @@ export function CalendarView() {
   const [typeId, setTypeId] = useState<string>("none");
   const [durationMin, setDurationMin] = useState<number>(60);
   const [isMinimized, setIsMinimized] = useState(false);
+  const [tasksExpanded, setTasksExpanded] = useState(false);
   const [actionTask, setActionTask] = useState<any | null>(null);
   const [completeOpen, setCompleteOpen] = useState(false);
   const [tempoH, setTempoH] = useState("");
