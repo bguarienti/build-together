@@ -59,15 +59,15 @@ export function MetricsView() {
           <Card>
             <CardContent className="space-y-3 p-4">
               {typeMetrics.map((t: any) => {
-                const pct = totalHours > 0 ? (t.horas / totalHours) * 100 : 0;
+                const pct = totalHours > 0 ? (t.hours / totalHours) * 100 : 0;
                 return (
-                  <div key={t.id} className="space-y-1">
+                  <div key={t.name} className="space-y-1">
                     <div className="flex items-center justify-between text-sm">
                       <div className="flex items-center gap-2">
-                        <Badge style={{ backgroundColor: t.cor }} className="text-white">{t.nome}</Badge>
-                        <span className="text-xs text-muted-foreground">{t.tarefas_concluidas} concluída(s)</span>
+                        <Badge style={{ backgroundColor: t.color }} className="text-white">{t.name}</Badge>
+                        <span className="text-xs text-muted-foreground">{t.count} concluída(s)</span>
                       </div>
-                      <span className="font-mono">{t.horas.toFixed(1)}h · {pct.toFixed(0)}%</span>
+                      <span className="font-mono">{t.hours.toFixed(1)}h · {pct.toFixed(0)}%</span>
                     </div>
                     <Progress value={pct} className="h-1.5" />
                   </div>
