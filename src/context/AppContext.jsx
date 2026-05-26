@@ -418,6 +418,7 @@ export function AppContextProvider({ children }) {
     unscheduleTask,
     completeTask,
     cancelTask,
+    reopenTask,
     getTasksByProjectId,
     getMetricsForProject,
     getOffenderMetrics,
