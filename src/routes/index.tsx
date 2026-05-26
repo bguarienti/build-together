@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+// @ts-expect-error - legacy JSX module
 import App from "../App.jsx";
 
 export const Route = createFileRoute("/")({
