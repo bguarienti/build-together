@@ -233,7 +233,7 @@ export function CalendarView() {
                     <div
                       className={cn(
                         "border-r px-1 text-right text-[10px] text-muted-foreground",
-                        isHourStart ? "border-b" : "border-b border-dashed border-border/40"
+                        isHourStart ? "border-t" : "border-t border-dashed border-border/40"
                       )}
                       style={{ height: SLOT_H }}
                     >
@@ -267,7 +267,7 @@ export function CalendarView() {
                               onClick={() => isEmpty && openNewSlot(dateStr, startMin)}
                               className={cn(
                                 "group/slot relative border-r transition-colors",
-                                isHourStart ? "border-b" : "border-b border-dashed border-border/40",
+                                isHourStart ? "border-t" : "border-t border-dashed border-border/40",
                                 isEmpty && "cursor-pointer hover:bg-primary/5",
                                 snapshot.isDraggingOver && "bg-primary/10",
                                 isToday(date) && "bg-primary/[0.02]"
