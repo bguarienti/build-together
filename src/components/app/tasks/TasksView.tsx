@@ -57,6 +57,9 @@ export function TasksView() {
   const [notes, setNotes] = useState("");
   const [newTodoTitle, setNewTodoTitle] = useState("");
   const [newTodoDate, setNewTodoDate] = useState<Date | undefined>(undefined);
+  const [editTarget, setEditTarget] = useState<any | null>(null);
+  const [editProjectId, setEditProjectId] = useState<string>("none");
+  const [editTypeId, setEditTypeId] = useState<string>("none");
 
   useEffect(() => {
     setNotes(notesTarget?.anotacoes ?? "");
