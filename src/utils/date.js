@@ -1,6 +1,6 @@
-export const HOURS = Array.from({ length: 17 }, (_, i) => i + 6);
+export const HOURS = Array.from({ length: 11 }, (_, i) => i + 8);
 export const SLOT_MINUTES = 15;
-// 15-min slots from 06:00 to 22:45
+// 15-min slots from 08:00 to 18:45
 export const SLOTS = (() => {
   const out = [];
   for (const h of HOURS) {
