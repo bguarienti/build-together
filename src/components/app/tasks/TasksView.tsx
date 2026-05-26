@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Plus, Trash2, CheckCircle2, XCircle, AlertTriangle, X, CalendarIcon, RotateCcw, StickyNote, ClipboardList } from "lucide-react";
+import { Plus, Trash2, CheckCircle2, XCircle, AlertTriangle, X, CalendarIcon, RotateCcw, StickyNote, ClipboardList, Pencil } from "lucide-react";
 import { format } from "date-fns";
 import { useAppContext } from "@/hooks/useAppContext";
 import { Card, CardContent } from "@/components/ui/card";
@@ -57,6 +57,9 @@ export function TasksView() {
   const [notes, setNotes] = useState("");
   const [newTodoTitle, setNewTodoTitle] = useState("");
   const [newTodoDate, setNewTodoDate] = useState<Date | undefined>(undefined);
+  const [editTarget, setEditTarget] = useState<any | null>(null);
+  const [editProjectId, setEditProjectId] = useState<string>("none");
+  const [editTypeId, setEditTypeId] = useState<string>("none");
 
   useEffect(() => {
     setNotes(notesTarget?.anotacoes ?? "");
@@ -313,6 +316,9 @@ export function TasksView() {
                           </Button>
                           {isActive && (
                             <>
+                              <Button size="icon" variant="ghost" title="Editar" onClick={() => { setEditTarget(task); setEditProjectId(task.projeto_id || "none"); setEditTypeId(task.task_type_id || "none"); }}>
+                                <Pencil className="h-4 w-4 text-blue-600" />
+                              </Button>
                               <Button size="icon" variant="ghost" title="Concluir" onClick={() => { setCompleteTarget(task); setTempoH(""); setTempoM(""); }}>
                                 <CheckCircle2 className="h-4 w-4 text-emerald-600" />
                               </Button>
@@ -363,6 +369,49 @@ export function TasksView() {
           <DialogFooter>
             <Button variant="ghost" onClick={() => setCompleteTarget(null)}>Cancelar</Button>
             <Button onClick={handleComplete}>Concluir</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!editTarget} onOpenChange={(o) => !o && setEditTarget(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Editar tarefa</DialogTitle>
+            <DialogDescription>{editTarget?.nome}</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="space-y-1.5">
+              <Label>Projeto</Label>
+              <Select value={editProjectId} onValueChange={setEditProjectId}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Sem projeto</SelectItem>
+                  {projects.map((p: any) => <SelectItem key={p.id} value={p.id}>{p.nome}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label>Tipo</Label>
+              <Select value={editTypeId} onValueChange={setEditTypeId}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Sem tipo</SelectItem>
+                  {types.map((t: any) => <SelectItem key={t.id} value={t.id}>{t.nome}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setEditTarget(null)}>Cancelar</Button>
+            <Button onClick={() => {
+              if (!editTarget) return;
+              updateTask(editTarget.id, {
+                projeto_id: editProjectId === "none" ? null : editProjectId,
+                task_type_id: editTypeId === "none" ? null : editTypeId,
+              });
+              toast.success("Tarefa atualizada");
+              setEditTarget(null);
+            }}>Salvar</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
