@@ -1,4 +1,4 @@
-import { Draggable } from 'react-beautiful-dnd';
+import { Draggable } from '@hello-pangea/dnd';
 import { useAppContext } from '../../hooks/useAppContext';
 import './ScheduleBlock.css';
 

@@ -1,4 +1,4 @@
-import { Droppable } from 'react-beautiful-dnd';
+import { Droppable } from '@hello-pangea/dnd';
 import './TimeSlot.css';
 
 export default function TimeSlot({ hour, date, children, blocks, onClick }) {
