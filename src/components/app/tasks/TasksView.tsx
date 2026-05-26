@@ -294,16 +294,19 @@ export function TasksView() {
                         </Badge>
                       </TableCell>
                       <TableCell className="font-mono text-xs">
-                        {task.tempo_gasto ? `${task.tempo_gasto}h` : "—"}
+                        {task.tempo_gasto ? formatHoursMinutes(task.tempo_gasto) : "—"}
                         {task.historico_replanejamentos > 0 && (
                           <span className="ml-2 text-amber-600">↻{task.historico_replanejamentos}</span>
                         )}
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-1">
+                          <Button size="icon" variant="ghost" title="Anotações" onClick={() => setNotesTarget(task)}>
+                            <StickyNote className={cn("h-4 w-4", task.anotacoes ? "text-primary" : "text-muted-foreground")} />
+                          </Button>
                           {isActive && (
                             <>
-                              <Button size="icon" variant="ghost" title="Concluir" onClick={() => setCompleteTarget(task)}>
+                              <Button size="icon" variant="ghost" title="Concluir" onClick={() => { setCompleteTarget(task); setTempoH(""); setTempoM(""); }}>
                                 <CheckCircle2 className="h-4 w-4 text-emerald-600" />
                               </Button>
                               <Button size="icon" variant="ghost" title="Cancelar" onClick={() => {
@@ -342,22 +345,43 @@ export function TasksView() {
             <DialogTitle>Concluir tarefa</DialogTitle>
             <DialogDescription>{completeTarget?.nome}</DialogDescription>
           </DialogHeader>
-          <div className="space-y-2">
-            <Label htmlFor="tempo">Tempo gasto (horas)</Label>
-            <Input
-              id="tempo"
-              type="number"
-              step="0.25"
-              min="0.25"
-              placeholder="Ex: 2.5"
-              value={tempoGasto}
-              onChange={(e) => setTempoGasto(e.target.value)}
-              autoFocus
-            />
-          </div>
+          <HoursMinutesInput
+            hours={tempoH}
+            minutes={tempoM}
+            onHoursChange={setTempoH}
+            onMinutesChange={setTempoM}
+            idPrefix="tasks-tempo"
+            autoFocus
+          />
           <DialogFooter>
             <Button variant="ghost" onClick={() => setCompleteTarget(null)}>Cancelar</Button>
             <Button onClick={handleComplete}>Concluir</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!notesTarget} onOpenChange={(o) => !o && setNotesTarget(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Anotações</DialogTitle>
+            <DialogDescription>{notesTarget?.nome}</DialogDescription>
+          </DialogHeader>
+          <Textarea
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            rows={6}
+            maxLength={2000}
+            placeholder="Notas, contexto, links…"
+            autoFocus
+          />
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setNotesTarget(null)}>Cancelar</Button>
+            <Button onClick={() => {
+              if (!notesTarget) return;
+              updateTask(notesTarget.id, { anotacoes: notes });
+              toast.success("Anotações salvas");
+              setNotesTarget(null);
+            }}>Salvar</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
