@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Plus, Trash2, CheckCircle2, XCircle, AlertTriangle, X, CalendarIcon } from "lucide-react";
+import { Plus, Trash2, CheckCircle2, XCircle, AlertTriangle, X, CalendarIcon, RotateCcw } from "lucide-react";
 import { format } from "date-fns";
 import { useAppContext } from "@/hooks/useAppContext";
 import { Card, CardContent } from "@/components/ui/card";
@@ -33,7 +33,7 @@ const STATE_VARIANT: Record<string, { label: string; className: string }> = {
 };
 
 export function TasksView() {
-  const { getTasks, getProjects, getTaskTypes, addTask, addSchedule, deleteTask, completeTask, cancelTask } = useAppContext();
+  const { getTasks, getProjects, getTaskTypes, addTask, addSchedule, deleteTask, completeTask, cancelTask, reopenTask } = useAppContext();
   const tasks = getTasks();
   const projects = getProjects();
   const types = getTaskTypes();
@@ -303,6 +303,13 @@ export function TasksView() {
                                 <XCircle className="h-4 w-4 text-amber-600" />
                               </Button>
                             </>
+                          )}
+                          {!isActive && (
+                            <Button size="icon" variant="ghost" title="Reabrir" onClick={() => {
+                              reopenTask(task.id); toast.success("Tarefa reaberta");
+                            }}>
+                              <RotateCcw className="h-4 w-4 text-blue-600" />
+                            </Button>
                           )}
                           <Button size="icon" variant="ghost" title="Deletar" onClick={() => {
                             if (window.confirm(`Deletar "${task.nome}"?`)) { deleteTask(task.id); toast.success("Removida"); }
