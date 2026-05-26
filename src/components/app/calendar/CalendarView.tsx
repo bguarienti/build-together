@@ -34,6 +34,7 @@ export function CalendarView() {
   const [projectId, setProjectId] = useState<string>("none");
   const [typeId, setTypeId] = useState<string>("none");
   const [durationMin, setDurationMin] = useState<number>(60);
+  const [isMinimized, setIsMinimized] = useState(false);
 
   const weekDates = getWeekDates(currentWeek);
   const projects = getProjects();
