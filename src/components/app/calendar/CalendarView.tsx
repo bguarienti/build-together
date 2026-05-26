@@ -33,7 +33,7 @@ type NewSlot = { date: string; startMin: number } | null;
 const SLOT_H = 16;
 
 export function CalendarView() {
-  const { state, getTasks, getProjects, getTaskTypes, addTask, addSchedule, rescheduleTask, unscheduleTask, completeTask, cancelTask, reopenTask, deleteTask, updateTask, getTodosByDeadline } = useAppContext();
+  const { state, getTasks, getProjects, getTaskTypes, addTask, addSchedule, rescheduleTask, unscheduleTask, completeTask, cancelTask, reopenTask, deleteTask, updateTask, getTodosByDeadline, getTodosByTask, addTodo, completeTodo, deleteTodo } = useAppContext();
   const [currentWeek, setCurrentWeek] = useState<Date>(new Date());
   const [newSlot, setNewSlot] = useState<NewSlot>(null);
   const [name, setName] = useState("");
@@ -46,6 +46,8 @@ export function CalendarView() {
   const [tempoH, setTempoH] = useState("");
   const [tempoM, setTempoM] = useState("");
   const [notes, setNotes] = useState("");
+  const [calTodoTitle, setCalTodoTitle] = useState("");
+  const [calTodoDate, setCalTodoDate] = useState<Date | undefined>(undefined);
 
   useEffect(() => {
     setNotes(actionTask?.anotacoes ?? "");
