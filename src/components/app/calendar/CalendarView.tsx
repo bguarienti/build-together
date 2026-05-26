@@ -516,43 +516,6 @@ export function CalendarView() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      {/* Modal de conclusão (tempo gasto) */}
-      <Dialog open={completeOpen} onOpenChange={(o) => { setCompleteOpen(o); if (!o) setTempoGasto(""); }}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Concluir tarefa</DialogTitle>
-            <DialogDescription>{actionTask?.nome}</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-2">
-            <Label htmlFor="cal-tempo">Tempo gasto (horas)</Label>
-            <Input
-              id="cal-tempo"
-              type="number"
-              step="0.25"
-              min="0.25"
-              placeholder="Ex: 2.5"
-              value={tempoGasto}
-              onChange={(e) => setTempoGasto(e.target.value)}
-              autoFocus
-            />
-          </div>
-          <DialogFooter>
-            <Button variant="ghost" onClick={() => setCompleteOpen(false)}>Cancelar</Button>
-            <Button onClick={() => {
-              try {
-                const t = parseFloat(tempoGasto);
-                if (!t || t <= 0) throw new Error("Tempo gasto deve ser positivo");
-                completeTask(actionTask.id, t);
-                toast.success("Tarefa concluída");
-                setCompleteOpen(false); setActionTask(null); setTempoGasto("");
-              } catch (err: any) {
-                toast.error(err.message);
-              }
-            }}>Concluir</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </DragDropContext>
   );
 }
