@@ -373,6 +373,49 @@ export function TasksView() {
         </DialogContent>
       </Dialog>
 
+      <Dialog open={!!editTarget} onOpenChange={(o) => !o && setEditTarget(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Editar tarefa</DialogTitle>
+            <DialogDescription>{editTarget?.nome}</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="space-y-1.5">
+              <Label>Projeto</Label>
+              <Select value={editProjectId} onValueChange={setEditProjectId}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Sem projeto</SelectItem>
+                  {projects.map((p: any) => <SelectItem key={p.id} value={p.id}>{p.nome}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label>Tipo</Label>
+              <Select value={editTypeId} onValueChange={setEditTypeId}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Sem tipo</SelectItem>
+                  {types.map((t: any) => <SelectItem key={t.id} value={t.id}>{t.nome}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setEditTarget(null)}>Cancelar</Button>
+            <Button onClick={() => {
+              if (!editTarget) return;
+              updateTask(editTarget.id, {
+                projeto_id: editProjectId === "none" ? null : editProjectId,
+                task_type_id: editTypeId === "none" ? null : editTypeId,
+              });
+              toast.success("Tarefa atualizada");
+              setEditTarget(null);
+            }}>Salvar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <Dialog open={!!notesTarget} onOpenChange={(o) => { if (!o) { setNotesTarget(null); setNewTodoTitle(""); setNewTodoDate(undefined); } }}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
