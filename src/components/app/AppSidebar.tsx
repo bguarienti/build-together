@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, CalendarDays, ListTodo, FolderKanban, Tags, BarChart3, Clock, ClipboardList } from "lucide-react";
+import { LayoutDashboard, CalendarDays, ListTodo, FolderKanban, Tags, BarChart3, Clock, ClipboardList, CalendarCheck } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -22,6 +22,7 @@ const items = [
   { title: "Projetos", url: "/projects", icon: FolderKanban },
   { title: "Tipos", url: "/types", icon: Tags },
   { title: "Métricas", url: "/metrics", icon: BarChart3 },
+  { title: "Google Calendar", url: "/google-calendar", icon: CalendarCheck },
 ];
 
 export function AppSidebar() {

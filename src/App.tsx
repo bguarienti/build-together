@@ -11,6 +11,7 @@ import { ProjectsPage } from "@/pages/ProjectsPage";
 import { TypesPage } from "@/pages/TypesPage";
 import { MetricsPage } from "@/pages/MetricsPage";
 import { TodosPage } from "@/pages/TodosPage";
+import { GoogleCalendarPage } from "@/pages/GoogleCalendarPage";
 
 const titles: Record<string, string> = {
   "/": "Dashboard — Time Blocking",
@@ -20,6 +21,7 @@ const titles: Record<string, string> = {
   "/types": "Tipos — Time Blocking",
   "/metrics": "Métricas — Time Blocking",
   "/todos": "TODOs — Time Blocking",
+  "/google-calendar": "Google Calendar — Time Blocking",
 };
 
 function TitleSync() {
@@ -62,6 +64,7 @@ export default function App() {
             <Route path="/types" element={<TypesPage />} />
             <Route path="/metrics" element={<MetricsPage />} />
             <Route path="/todos" element={<TodosPage />} />
+            <Route path="/google-calendar" element={<GoogleCalendarPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </SidebarInset>
