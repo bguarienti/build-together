@@ -210,8 +210,37 @@ export function GoogleCalendarPage() {
                 </Button>
               </div>
             )}
-            <div className="text-xs text-muted-foreground">
-              Origem atual: <code>{window.location.origin}</code>
+            <div className="space-y-2 text-xs text-muted-foreground">
+              <div>
+                Origem para colar em "Authorized JavaScript origins":{" "}
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigator.clipboard.writeText(window.location.origin);
+                    toast.success("Origem copiada.");
+                  }}
+                  className="font-mono text-foreground underline"
+                  title="Copiar"
+                >
+                  {window.location.origin}
+                </button>
+              </div>
+              {window.self !== window.top && (
+                <div className="rounded border border-amber-500/40 bg-amber-500/10 p-2 text-amber-700 dark:text-amber-300">
+                  Você está vendo o app dentro do iframe do preview do Lovable.
+                  O popup do Google costuma ser bloqueado aqui — abra em uma
+                  nova aba antes de conectar.
+                  <div className="mt-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => window.open(window.location.href, "_blank")}
+                    >
+                      Abrir em nova aba
+                    </Button>
+                  </div>
+                </div>
+              )}
             </div>
             {!connected && !editingClient && (
               <Button onClick={handleConnect} className="w-full sm:w-auto">
