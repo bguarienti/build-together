@@ -120,13 +120,13 @@ export function Dashboard() {
               </div>
             </CardHeader>
             <CardContent>
-              {todaySchedules.length === 0 && todayTodos.length === 0 ? (
+              {filteredSchedules.length === 0 && filteredTodos.length === 0 ? (
                 <p className="rounded-md border border-dashed py-8 text-center text-sm text-muted-foreground">
-                  Nada agendado para hoje.
+                  Nada agendado para {periodoLabel.toLowerCase()}.
                 </p>
               ) : (
                 <ul className="space-y-2">
-                  {todaySchedules.map((s: any) => {
+                  {filteredSchedules.map((s: any) => {
                     const task = state.tasks.find((t: any) => t.id === s.tarefa_id);
                     const project = projects.find((p: any) => p.id === task?.projeto_id);
                     const type = task?.task_type_id ? state.taskTypes.find((t: any) => t.id === task.task_type_id) : null;
@@ -149,13 +149,55 @@ export function Dashboard() {
                             )}
                           </div>
                         </div>
-                        <Badge variant="outline" className="font-mono text-xs shrink-0">
-                          {s.hora_inicio}–{s.hora_fim}
-                        </Badge>
+                        <div className="flex flex-col items-end gap-0.5 shrink-0">
+                          {periodo !== "hoje" && (
+                            <span className="text-[10px] text-muted-foreground">
+                              {formatDateBR(new Date(s.data + "T12:00:00"))}
+                            </span>
+                          )}
+                          <Badge variant="outline" className="font-mono text-xs">
+                            {s.hora_inicio}–{s.hora_fim}
+                          </Badge>
+                        </div>
                       </li>
                     );
                   })}
-                  {todayTodos.map((td: any) => {
+                  {filteredTodos.map((td: any) => {
+                    const linkedTask = td.tarefa_id ? state.tasks.find((t: any) => t.id === td.tarefa_id) : null;
+                    const project = linkedTask ? projects.find((p: any) => p.id === linkedTask.projeto_id) : null;
+                    return (
+                      <li key={td.id} className="flex items-center gap-3 rounded-md border border-dashed bg-card p-3">
+                        <ListChecks className="h-4 w-4 shrink-0 text-muted-foreground" />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium">{td.titulo}</p>
+                          <div className="flex flex-wrap items-center gap-1 mt-0.5">
+                            {linkedTask && <span className="text-xs text-muted-foreground">{linkedTask.nome}</span>}
+                            {project && (
+                              <Badge style={{ backgroundColor: project.cor }} className="h-3.5 px-1 text-[9px] text-white leading-none">
+                                {project.nome}
+                              </Badge>
+                            )}
+                            <Badge variant="secondary" className="h-3.5 px-1 text-[9px] leading-none bg-amber-100 text-amber-700">
+                              TODO
+                            </Badge>
+                          </div>
+                        </div>
+                        <div className="flex flex-col items-end gap-0.5 shrink-0">
+                          {periodo !== "hoje" && (
+                            <span className="text-[10px] text-muted-foreground">
+                              {formatDateBR(new Date(td.prazo + "T12:00:00"))}
+                            </span>
+                          )}
+                          <Badge variant="outline" className="font-mono text-xs">
+                            Prazo {periodo === "hoje" ? "hoje" : periodoLabel.toLowerCase()}
+                          </Badge>
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </CardContent>
                     const linkedTask = td.tarefa_id ? state.tasks.find((t: any) => t.id === td.tarefa_id) : null;
                     const project = linkedTask ? projects.find((p: any) => p.id === linkedTask.projeto_id) : null;
                     return (
