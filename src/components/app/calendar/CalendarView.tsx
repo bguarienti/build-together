@@ -324,7 +324,8 @@ export function CalendarView() {
                                 // Sobreposição: tarefa anterior concluída que ultrapassou e invadiu este slot.
                                 // Encolhemos esta tarefa pela esquerda (alinhada à direita)
                                 // para que a extensão vermelha do atraso fique visível à esquerda.
-                                let overlapMin = 0;
+                                // Conta quantas tarefas anteriores concluídas com atraso se sobrepõem a este slot.
+                                let overlapCount = 0;
                                 state.schedules.forEach((prev: any) => {
                                   if (!prev.ativo || prev.data !== dateStr || prev.id === s.id) return;
                                   const pStart = parseTime(prev.hora_inicio);
@@ -334,11 +335,10 @@ export function CalendarView() {
                                   if (!pTask || pTask.estado !== "concluída" || !pTask.tempo_gasto) return;
                                   const pActualEnd = pStart + Math.round(pTask.tempo_gasto * 60);
                                   if (pActualEnd <= startMin || pEnd > startMin) return;
-                                  const ov = pActualEnd - startMin;
-                                  if (ov > overlapMin) overlapMin = ov;
+                                  overlapCount++;
                                 });
-                                // Indentação esquerda proporcional ao atraso (cap em ~40% do bloco)
-                                const indentPct = Math.min(40, (overlapMin / SLOT_MINUTES) * 12);
+                                // Reduz 10% da largura para cada item sobreposto (máx 50%)
+                                const indentPct = Math.min(50, overlapCount * 10);
 
                                 // z-index por "plano": mais velho fica atrás
                                 const planeZ = 10 + Math.min(50, Math.floor((startMin) / SLOT_MINUTES));
