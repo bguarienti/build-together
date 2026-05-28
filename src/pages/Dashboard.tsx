@@ -77,19 +77,48 @@ export function Dashboard() {
 
         <div className="grid gap-6 lg:grid-cols-3">
           <Card className="lg:col-span-2">
+          <Card className="lg:col-span-2">
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
                 <CardTitle className="flex items-center gap-2 text-base">
                   <Clock className="h-4 w-4 text-primary" />
-                  Agenda de hoje
+                  Agenda — {periodoLabel}
                 </CardTitle>
-                <CardDescription>{todaySchedules.length} bloco(s) + {todayTodos.length} TODO(s)</CardDescription>
+                <CardDescription>{filteredSchedules.length} bloco(s) + {filteredTodos.length} TODO(s)</CardDescription>
               </div>
-              <Button asChild variant="ghost" size="sm">
-                <Link to="/calendar">
-                  Abrir calendário <ArrowRight className="ml-1 h-3 w-3" />
-                </Link>
-              </Button>
+              <div className="flex items-center gap-2">
+                <div className="flex rounded-md border bg-muted p-0.5">
+                  <Button
+                    variant={periodo === "hoje" ? "secondary" : "ghost"}
+                    size="sm"
+                    className="h-7 text-xs px-2"
+                    onClick={() => setPeriodo("hoje")}
+                  >
+                    Hoje
+                  </Button>
+                  <Button
+                    variant={periodo === "amanha" ? "secondary" : "ghost"}
+                    size="sm"
+                    className="h-7 text-xs px-2"
+                    onClick={() => setPeriodo("amanha")}
+                  >
+                    Amanhã
+                  </Button>
+                  <Button
+                    variant={periodo === "semana" ? "secondary" : "ghost"}
+                    size="sm"
+                    className="h-7 text-xs px-2"
+                    onClick={() => setPeriodo("semana")}
+                  >
+                    Resto da Semana
+                  </Button>
+                </div>
+                <Button asChild variant="ghost" size="sm">
+                  <Link to="/calendar">
+                    Abrir calendário <ArrowRight className="ml-1 h-3 w-3" />
+                  </Link>
+                </Button>
+              </div>
             </CardHeader>
             <CardContent>
               {todaySchedules.length === 0 && todayTodos.length === 0 ? (
