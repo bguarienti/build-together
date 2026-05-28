@@ -369,13 +369,15 @@ export function CalendarView() {
                                         {...p.dragHandleProps}
                                         onClick={(e) => { e.stopPropagation(); setActionTask(task); }}
                                         className={cn(
-                                          "group absolute inset-x-0.5 cursor-pointer overflow-hidden rounded-md border-l-4 bg-background px-1.5 py-1 text-[11px] shadow-sm transition hover:bg-accent/50",
+                                          "group absolute right-0.5 cursor-pointer overflow-hidden rounded-md border-l-4 bg-background px-1.5 py-1 text-[11px] shadow-sm transition hover:bg-accent/50",
                                           snap.isDragging && "ring-2 ring-primary",
                                           isDone && "opacity-60 line-through",
                                           isCanceled && "opacity-50 italic"
                                         )}
                                         style={{
-                                          top: snap.isDragging ? 1 : 1 + offsetPx,
+                                          top: 1,
+                                          left: snap.isDragging ? undefined : `${indentPct}%`,
+                                          right: snap.isDragging ? undefined : 2,
                                           height: snap.isDragging ? undefined : plannedH,
                                           borderLeftColor: color,
                                           zIndex: planeZ,
