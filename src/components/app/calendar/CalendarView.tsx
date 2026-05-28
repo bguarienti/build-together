@@ -340,8 +340,9 @@ export function CalendarView() {
                                 // Reduz 10% da largura para cada item sobreposto (máx 50%)
                                 const indentPct = Math.min(50, overlapCount * 10);
 
-                                // z-index por "plano": mais velho fica atrás
-                                const planeZ = 10 + Math.min(50, Math.floor((startMin) / SLOT_MINUTES));
+                                // z-index por "plano": mais velho fica atrás.
+                                // Mantemos abaixo de 40 para não cobrir modais/dialogs (z-50).
+                                const planeZ = 10 + Math.min(25, Math.floor((startMin) / SLOT_MINUTES));
 
                                 return (
                                   <div key={s.id} className="contents">
