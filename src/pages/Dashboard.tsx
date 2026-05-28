@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useAppContext } from "@/hooks/useAppContext";
 import { Topbar } from "@/components/app/Topbar";
@@ -5,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CalendarDays, AlertTriangle, CheckCircle2, Clock, ListTodo, FolderKanban, ArrowRight, ListChecks } from "lucide-react";
-import { formatDate, formatDateBR } from "@/utils/date";
+import { formatDate, formatDateBR, addDays, getWeekDates } from "@/utils/date";
 import { cn } from "@/lib/utils";
 
 const STATE_VARIANT: Record<string, { label: string; className: string }> = {
