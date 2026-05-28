@@ -198,6 +198,17 @@ export function TasksView() {
             ))}
           </SelectContent>
         </Select>
+        <Select value={typeFilter} onValueChange={setTypeFilter}>
+          <SelectTrigger className="w-[180px]"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos os tipos</SelectItem>
+            <SelectItem value="none">Sem tipo</SelectItem>
+            {types.map((t: any) => (
+              <SelectItem key={t.id} value={t.id}>{t.nome}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
         <Button size="sm" className="ml-auto" onClick={() => setShowForm((v) => !v)}>
           {showForm ? <X className="mr-1 h-4 w-4" /> : <Plus className="mr-1 h-4 w-4" />}
           {showForm ? "Cancelar" : "Nova tarefa"}
