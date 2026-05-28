@@ -350,7 +350,7 @@ export function CalendarView() {
                                       <div
                                         className="pointer-events-none absolute inset-x-0.5 rounded-b-md border border-t-0 border-destructive/60 bg-destructive/20"
                                         style={{
-                                          top: 1 + offsetPx + plannedH,
+                                          top: 1 + plannedH,
                                           height: overrunH,
                                           zIndex: planeZ - 1,
                                         }}
