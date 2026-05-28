@@ -37,7 +37,7 @@ function getPlannedHoursForTask(task, schedules) {
   return ((h2 * 60 + m2) - (h1 * 60 + m1)) / 60;
 }
 
-// Métricas de atraso (planejado vs realizado) para um conjunto de tarefas
+// Métricas de desvio (planejado vs realizado) para um conjunto de tarefas
 export function calculateDelayMetrics(tasks, schedules) {
   const completed = tasks.filter(
     (t) => t.ativo && t.estado === 'concluída' && t.tempo_gasto
@@ -46,7 +46,7 @@ export function calculateDelayMetrics(tasks, schedules) {
   let withPlan = 0;
   let lateCount = 0;
   let onTimeCount = 0;
-  let totalDelta = 0; // soma em horas (positivo = atraso)
+  let totalDelta = 0; // soma em horas (positivo = desvio)
   let totalPlanned = 0;
   let totalActual = 0;
 
@@ -66,10 +66,10 @@ export function calculateDelayMetrics(tasks, schedules) {
 
   return {
     avaliadas: withPlan,
-    atrasadas: lateCount,
+    desviadas: lateCount,
     no_prazo: onTimeCount,
-    atraso_total_horas: parseFloat(totalDelta.toFixed(2)),
-    atraso_medio_horas: withPlan > 0 ? parseFloat((totalDelta / withPlan).toFixed(2)) : 0,
+    desvio_total_horas: parseFloat(totalDelta.toFixed(2)),
+    desvio_medio_horas: withPlan > 0 ? parseFloat((totalDelta / withPlan).toFixed(2)) : 0,
     desvio_pct: totalPlanned > 0 ? parseFloat((((totalActual - totalPlanned) / totalPlanned) * 100).toFixed(1)) : 0,
   };
 }
