@@ -1,28 +1,118 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useAppContext } from "@/hooks/useAppContext";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
 import { calculateHoursByTaskType, calculateDelayMetrics } from "@/utils/metrics";
 import { formatHoursMinutes } from "@/components/app/HoursMinutesInput";
-import { AlertTriangle, Clock, CheckCircle2, RotateCw, XCircle, TrendingUp, TrendingDown } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { AlertTriangle, Clock, CheckCircle2, RotateCw, XCircle, TrendingUp, TrendingDown, Calendar as CalendarIcon, X } from "lucide-react";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import type { DateRange } from "react-day-picker";
+
+// Retorna a data relevante de uma tarefa para fins de filtro temporal
+function getTaskRelevantTimestamp(task: any): number | null {
+  if (task.estado === "concluída") return task.data_conclusao ?? task.data_criacao ?? null;
+  if (task.estado === "cancelada") return task.data_cancelamento ?? task.data_criacao ?? null;
+  if (task.estado === "agendada") return task.data_agendado ?? task.data_criacao ?? null;
+  return task.data_criacao ?? null;
+}
+
+function startOfDay(d: Date) {
+  const x = new Date(d);
+  x.setHours(0, 0, 0, 0);
+  return x;
+}
+function endOfDay(d: Date) {
+  const x = new Date(d);
+  x.setHours(23, 59, 59, 999);
+  return x;
+}
 
 export function MetricsView() {
-  const { state, getAllMetrics } = useAppContext();
-  const metrics = getAllMetrics();
+  const { state } = useAppContext();
+
+  // Filtro de período (default: últimos 30 dias)
+  const defaultRange: DateRange = useMemo(() => {
+    const to = new Date();
+    const from = new Date();
+    from.setDate(from.getDate() - 29);
+    return { from, to };
+  }, []);
+  const [range, setRange] = useState<DateRange | undefined>(defaultRange);
+
+  const filteredTasks = useMemo(() => {
+    if (!range?.from && !range?.to) return state.tasks;
+    const fromMs = range?.from ? startOfDay(range.from).getTime() : -Infinity;
+    const toMs = range?.to ? endOfDay(range.to).getTime() : range?.from ? endOfDay(range.from).getTime() : Infinity;
+    return state.tasks.filter((t: any) => {
+      if (!t.ativo) return true; // mantém flag, filtrado depois
+      const ts = getTaskRelevantTimestamp(t);
+      if (ts == null) return false;
+      return ts >= fromMs && ts <= toMs;
+    });
+  }, [state.tasks, range]);
+
+  const metrics = useMemo(() => computeAllMetrics(filteredTasks, state.projects), [filteredTasks, state.projects]);
   const typeMetrics = useMemo(
-    () => calculateHoursByTaskType(state.tasks, state.taskTypes),
-    [state.tasks, state.taskTypes]
+    () => calculateHoursByTaskType(filteredTasks, state.taskTypes),
+    [filteredTasks, state.taskTypes]
   );
   const delayOverall = useMemo(
-    () => calculateDelayMetrics(state.tasks, state.schedules),
-    [state.tasks, state.schedules]
+    () => calculateDelayMetrics(filteredTasks, state.schedules),
+    [filteredTasks, state.schedules]
   );
 
   const totalHours = metrics.por_projeto.reduce((s: number, m: any) => s + m.tempo_gasto_total, 0) + metrics.ofensoras.tempo_gasto_total;
 
+  const setPreset = (days: number) => {
+    const to = new Date();
+    const from = new Date();
+    from.setDate(from.getDate() - (days - 1));
+    setRange({ from, to });
+  };
+
+  const rangeLabel = range?.from
+    ? range.to && range.to.getTime() !== range.from.getTime()
+      ? `${format(range.from, "dd/MM/yy", { locale: ptBR })} – ${format(range.to, "dd/MM/yy", { locale: ptBR })}`
+      : format(range.from, "dd/MM/yyyy", { locale: ptBR })
+    : "Todo o período";
+
   return (
     <div className="space-y-6">
+      {/* Filtro por período */}
+      <div className="flex flex-wrap items-center gap-2">
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button variant="outline" size="sm" className={cn("justify-start gap-2 font-normal", !range && "text-muted-foreground")}>
+              <CalendarIcon className="h-4 w-4" />
+              {rangeLabel}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="start">
+            <Calendar
+              mode="range"
+              selected={range}
+              onSelect={setRange}
+              numberOfMonths={2}
+              locale={ptBR}
+              initialFocus
+              className={cn("p-3 pointer-events-auto")}
+            />
+          </PopoverContent>
+        </Popover>
+        <Button variant="ghost" size="sm" onClick={() => setPreset(7)}>7d</Button>
+        <Button variant="ghost" size="sm" onClick={() => setPreset(30)}>30d</Button>
+        <Button variant="ghost" size="sm" onClick={() => setPreset(90)}>90d</Button>
+        <Button variant="ghost" size="sm" onClick={() => setRange(undefined)} className="gap-1">
+          <X className="h-3 w-3" /> Tudo
+        </Button>
+      </div>
+
       {/* Por projeto */}
       <section>
         <header className="mb-3 flex items-end justify-between">
@@ -33,7 +123,7 @@ export function MetricsView() {
           <p className="font-mono text-sm text-muted-foreground">total: {totalHours.toFixed(1)}h</p>
         </header>
         {metrics.por_projeto.length === 0 ? (
-          <p className="rounded-md border border-dashed py-12 text-center text-sm text-muted-foreground">Nenhum projeto cadastrado.</p>
+          <p className="rounded-md border border-dashed py-12 text-center text-sm text-muted-foreground">Nenhum projeto no período.</p>
         ) : (
           <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
             {metrics.por_projeto.map((m: any) => (
@@ -93,7 +183,7 @@ export function MetricsView() {
         </header>
         {delayOverall.avaliadas === 0 ? (
           <p className="rounded-md border border-dashed py-6 text-center text-sm text-muted-foreground">
-            Nenhuma tarefa concluída com agendamento ainda.
+            Nenhuma tarefa concluída com agendamento no período.
           </p>
         ) : (
           <Card>
@@ -132,6 +222,51 @@ export function MetricsView() {
       </section>
     </div>
   );
+}
+
+// Recalcula métricas por projeto / ofensoras a partir de um subconjunto de tarefas
+function computeAllMetrics(tasks: any[], projects: any[]) {
+  const activeTasks = tasks.filter((t) => t.ativo);
+
+  const buildFor = (predicate: (t: any) => boolean) => {
+    const subset = activeTasks.filter(predicate);
+    const completed = subset.filter((t) => t.estado === "concluída");
+    const canceled = subset.filter((t) => t.estado === "cancelada");
+    const open = subset.filter((t) => t.estado === "aberta");
+    const scheduled = subset.filter((t) => t.estado === "agendada");
+    const tempo_gasto_total = parseFloat(
+      completed.reduce((s, t) => s + (t.tempo_gasto || 0), 0).toFixed(2)
+    );
+    const total_replanejamentos = subset.reduce(
+      (s, t) => s + (t.historico_replanejamentos || 0),
+      0
+    );
+    return {
+      tempo_gasto_total,
+      tarefas_concluidas: completed.length,
+      tarefas_canceladas: canceled.length,
+      tarefas_abertas: open.length,
+      tarefas_agendadas: scheduled.length,
+      total_replanejamentos,
+    };
+  };
+
+  const por_projeto = projects
+    .filter((p) => p.ativo)
+    .map((p) => ({
+      projeto_id: p.id,
+      projeto_nome: p.nome,
+      projeto_cor: p.cor,
+      ...buildFor((t) => t.projeto_id === p.id),
+    }))
+    .filter((m) =>
+      m.tempo_gasto_total > 0 ||
+      m.tarefas_concluidas + m.tarefas_canceladas + m.tarefas_abertas + m.tarefas_agendadas > 0
+    );
+
+  const ofensoras = { projeto_id: "ofensoras", ...buildFor((t) => !t.projeto_id) };
+
+  return { por_projeto, ofensoras };
 }
 
 function DelayStat({ icon: Icon, label, value, color }: any) {
