@@ -130,11 +130,12 @@ export function Dashboard() {
                     const task = state.tasks.find((t: any) => t.id === s.tarefa_id);
                     const project = projects.find((p: any) => p.id === task?.projeto_id);
                     const type = task?.task_type_id ? state.taskTypes.find((t: any) => t.id === task.task_type_id) : null;
+                    const done = task?.estado === "concluída";
                     return (
-                      <li key={s.id} className="flex items-center gap-3 rounded-md border bg-card p-3">
+                      <li key={s.id} className={cn("flex items-center gap-3 rounded-md border bg-card p-3", done && "opacity-60")}>
                         <div className="w-1 self-stretch rounded" style={{ backgroundColor: project?.cor || "hsl(var(--muted-foreground))" }} />
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium">{task?.nome ?? "(tarefa removida)"}</p>
+                          <p className={cn("text-sm font-medium", done && "line-through")}>{task?.nome ?? "(tarefa removida)"}</p>
                           <div className="flex flex-wrap items-center gap-1 mt-0.5">
                             {project && <span className="text-xs text-muted-foreground">{project.nome}</span>}
                             {type && (
@@ -149,6 +150,7 @@ export function Dashboard() {
                             )}
                           </div>
                         </div>
+
                         <div className="flex flex-col items-end gap-0.5 shrink-0">
                           {periodo !== "hoje" && (
                             <span className="text-[10px] text-muted-foreground">
