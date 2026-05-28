@@ -366,8 +366,14 @@ export function TasksView() {
                         </Badge>
                       </TableCell>
                       <TableCell className="font-mono text-xs">
-                        {schedule ? `${schedule.hora_inicio} – ${schedule.hora_fim}` : "—"}
+                        {schedule ? (
+                          <div className="flex flex-col leading-tight">
+                            <span>{format(new Date(`${schedule.data}T00:00:00`), "dd/MM/yyyy")}</span>
+                            <span className="text-muted-foreground">{schedule.hora_inicio} – {schedule.hora_fim}</span>
+                          </div>
+                        ) : "—"}
                       </TableCell>
+
                       <TableCell className="font-mono text-xs">
                         {task.tempo_gasto ? formatHoursMinutes(task.tempo_gasto) : "—"}
                         {task.historico_replanejamentos > 0 && (
