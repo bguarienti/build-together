@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { format } from "date-fns";
 import { DragDropContext, Droppable, Draggable, type DropResult } from "@hello-pangea/dnd";
-import { ChevronLeft, ChevronRight, X, GripVertical, AlertTriangle, Plus, ChevronUp, ChevronDown, CheckCircle2, XCircle, RotateCcw, Trash2, Check, Ban, ClipboardList, CalendarIcon } from "lucide-react";
+import { ChevronLeft, ChevronRight, X, GripVertical, AlertTriangle, Plus, ChevronUp, ChevronDown, CheckCircle2, XCircle, RotateCcw, Trash2, Check, Ban, ClipboardList, CalendarIcon, Eye, EyeOff } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAppContext } from "@/hooks/useAppContext";
 import {
@@ -17,9 +17,8 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Textarea } from "@/components/ui/textarea";
@@ -49,6 +48,7 @@ export function CalendarView() {
   const [durationMin, setDurationMin] = useState<number>(60);
   const [isMinimized, setIsMinimized] = useState(false);
   const [tasksExpanded, setTasksExpanded] = useState(false);
+  const [showDeviations, setShowDeviations] = useState(true);
   const [actionTask, setActionTask] = useState<any | null>(null);
   const [completeOpen, setCompleteOpen] = useState(false);
   const [tempoH, setTempoH] = useState("");
@@ -206,7 +206,16 @@ export function CalendarView() {
             </Droppable>
 
 
-            <div className="flex shrink-0 items-center gap-1">
+            <div className="flex shrink-0 items-center gap-2">
+              <div className="flex items-center gap-1.5">
+                {showDeviations ? <Eye className="h-3.5 w-3.5 text-muted-foreground" /> : <EyeOff className="h-3.5 w-3.5 text-muted-foreground" />}
+                <Switch
+                  checked={showDeviations}
+                  onCheckedChange={setShowDeviations}
+                  className="scale-90"
+                  title={showDeviations ? "Ocultar desvios" : "Mostrar desvios"}
+                />
+              </div>
               <Button variant="outline" size="sm" onClick={() => setCurrentWeek(addDays(currentWeek, -7))}>
                 <ChevronLeft className="h-4 w-4" />
               </Button>
@@ -347,7 +356,7 @@ export function CalendarView() {
                                 return (
                                   <div key={s.id} className="contents">
                                     {/* Extensão vermelha indicando o desvio (renderizada atrás) */}
-                                    {overrunH > 0 && (
+                                    {showDeviations && overrunH > 0 && (
                                       <div
                                         className="pointer-events-none absolute inset-x-0.5 rounded-b-md border border-t-0 border-destructive/60 bg-destructive/20"
                                         style={{
@@ -377,7 +386,7 @@ export function CalendarView() {
                                         )}
                                         style={{
                                           top: 1,
-                                          left: snap.isDragging ? undefined : `${indentPct}%`,
+                                          left: snap.isDragging ? undefined : (showDeviations ? `${indentPct}%` : 0),
                                           right: snap.isDragging ? undefined : 2,
                                           height: snap.isDragging ? undefined : plannedH,
                                           borderLeftColor: color,
