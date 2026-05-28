@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
-import { Plus, Trash2, CheckCircle2, XCircle, AlertTriangle, X, CalendarIcon, RotateCcw, StickyNote, ClipboardList, Pencil } from "lucide-react";
+import { Plus, Trash2, CheckCircle2, XCircle, AlertTriangle, X, CalendarIcon, RotateCcw, StickyNote, ClipboardList, Pencil, ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
 import { format } from "date-fns";
+
 import { useAppContext } from "@/hooks/useAppContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -26,6 +27,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { HoursMinutesInput, toDecimalHours, formatHoursMinutes } from "@/components/app/HoursMinutesInput";
 
 type StateFilter = "all" | "aberta" | "agendada" | "concluída" | "cancelada";
+type SortKey = "name" | "project" | "type" | "state" | "schedule" | "time";
+type SortDir = "asc" | "desc";
+
 
 const STATE_VARIANT: Record<string, { label: string; className: string }> = {
   aberta: { label: "Aberta", className: "bg-slate-100 text-slate-700" },
@@ -42,7 +46,11 @@ export function TasksView() {
 
   const [filter, setFilter] = useState<StateFilter>("all");
   const [projFilter, setProjFilter] = useState<string>("all");
+  const [typeFilter, setTypeFilter] = useState<string>("all");
+  const [sortKey, setSortKey] = useState<SortKey>("schedule");
+  const [sortDir, setSortDir] = useState<SortDir>("asc");
   const [showForm, setShowForm] = useState(false);
+
   const [name, setName] = useState("");
   const [projectId, setProjectId] = useState<string>("none");
   const [typeId, setTypeId] = useState<string>("none");
@@ -75,14 +83,59 @@ export function TasksView() {
     return out;
   }, []);
 
+  const activeSchedulesByTask = useMemo(() => {
+    const map = new Map<string, any>();
+    state.schedules.forEach((s: any) => { if (s.ativo) map.set(s.tarefa_id, s); });
+    return map;
+  }, [state.schedules]);
+
   const filtered = useMemo(() => {
-    return tasks.filter((t: any) => {
+    const list = tasks.filter((t: any) => {
       if (filter !== "all" && t.estado !== filter) return false;
-      if (projFilter === "offenders") return !t.projeto_id;
-      if (projFilter !== "all" && t.projeto_id !== projFilter) return false;
+      if (projFilter === "offenders") {
+        if (t.projeto_id) return false;
+      } else if (projFilter !== "all" && t.projeto_id !== projFilter) return false;
+      if (typeFilter === "none") {
+        if (t.task_type_id) return false;
+      } else if (typeFilter !== "all" && t.task_type_id !== typeFilter) return false;
       return true;
     });
-  }, [tasks, filter, projFilter]);
+
+    const projName = (id: string | null) => (id ? projects.find((p: any) => p.id === id)?.nome ?? "" : "");
+    const typeName = (id: string | null) => (id ? types.find((tt: any) => tt.id === id)?.nome ?? "" : "");
+    const scheduleSortValue = (t: any) => {
+      const s = activeSchedulesByTask.get(t.id);
+      if (!s) return Number.POSITIVE_INFINITY;
+      return new Date(`${s.data}T${s.hora_inicio}:00`).getTime();
+    };
+    const stateOrder: Record<string, number> = { aberta: 0, agendada: 1, "concluída": 2, cancelada: 3 };
+
+    const getVal = (t: any): string | number => {
+      switch (sortKey) {
+        case "name": return (t.nome || "").toLowerCase();
+        case "project": return projName(t.projeto_id).toLowerCase();
+        case "type": return typeName(t.task_type_id).toLowerCase();
+        case "state": return stateOrder[t.estado] ?? 99;
+        case "schedule": return scheduleSortValue(t);
+        case "time": return t.tempo_gasto ?? -1;
+        default: return 0;
+      }
+    };
+
+    const sorted = [...list].sort((a, b) => {
+      const va = getVal(a); const vb = getVal(b);
+      if (va < vb) return sortDir === "asc" ? -1 : 1;
+      if (va > vb) return sortDir === "asc" ? 1 : -1;
+      return 0;
+    });
+    return sorted;
+  }, [tasks, filter, projFilter, typeFilter, sortKey, sortDir, projects, types, activeSchedulesByTask]);
+
+  const toggleSort = (key: SortKey) => {
+    if (sortKey === key) setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    else { setSortKey(key); setSortDir("asc"); }
+  };
+
 
   const resetForm = () => {
     setName(""); setProjectId("none"); setTypeId("none");
@@ -145,6 +198,17 @@ export function TasksView() {
             ))}
           </SelectContent>
         </Select>
+        <Select value={typeFilter} onValueChange={setTypeFilter}>
+          <SelectTrigger className="w-[180px]"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos os tipos</SelectItem>
+            <SelectItem value="none">Sem tipo</SelectItem>
+            {types.map((t: any) => (
+              <SelectItem key={t.id} value={t.id}>{t.nome}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
         <Button size="sm" className="ml-auto" onClick={() => setShowForm((v) => !v)}>
           {showForm ? <X className="mr-1 h-4 w-4" /> : <Plus className="mr-1 h-4 w-4" />}
           {showForm ? "Cancelar" : "Nova tarefa"}
@@ -257,14 +321,15 @@ export function TasksView() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[35%]">Tarefa</TableHead>
-                <TableHead>Projeto</TableHead>
-                <TableHead>Tipo</TableHead>
-                <TableHead>Estado</TableHead>
-                <TableHead>Horário</TableHead>
-                <TableHead>Tempo</TableHead>
+                <SortableHead label="Tarefa" sortKey="name" current={sortKey} dir={sortDir} onClick={toggleSort} className="w-[32%]" />
+                <SortableHead label="Projeto" sortKey="project" current={sortKey} dir={sortDir} onClick={toggleSort} />
+                <SortableHead label="Tipo" sortKey="type" current={sortKey} dir={sortDir} onClick={toggleSort} />
+                <SortableHead label="Estado" sortKey="state" current={sortKey} dir={sortDir} onClick={toggleSort} />
+                <SortableHead label="Agendamento" sortKey="schedule" current={sortKey} dir={sortDir} onClick={toggleSort} />
+                <SortableHead label="Tempo" sortKey="time" current={sortKey} dir={sortDir} onClick={toggleSort} />
                 <TableHead className="text-right">Ações</TableHead>
               </TableRow>
+
             </TableHeader>
             <TableBody>
               {filtered.length === 0 ? (
@@ -301,8 +366,14 @@ export function TasksView() {
                         </Badge>
                       </TableCell>
                       <TableCell className="font-mono text-xs">
-                        {schedule ? `${schedule.hora_inicio} – ${schedule.hora_fim}` : "—"}
+                        {schedule ? (
+                          <div className="flex flex-col leading-tight">
+                            <span>{format(new Date(`${schedule.data}T00:00:00`), "dd/MM/yyyy")}</span>
+                            <span className="text-muted-foreground">{schedule.hora_inicio} – {schedule.hora_fim}</span>
+                          </div>
+                        ) : "—"}
                       </TableCell>
+
                       <TableCell className="font-mono text-xs">
                         {task.tempo_gasto ? formatHoursMinutes(task.tempo_gasto) : "—"}
                         {task.historico_replanejamentos > 0 && (
@@ -527,3 +598,33 @@ export function TasksView() {
     </div>
   );
 }
+
+function SortableHead({
+  label, sortKey, current, dir, onClick, className,
+}: {
+  label: string;
+  sortKey: SortKey;
+  current: SortKey;
+  dir: SortDir;
+  onClick: (k: SortKey) => void;
+  className?: string;
+}) {
+  const active = current === sortKey;
+  const Icon = active ? (dir === "asc" ? ArrowUp : ArrowDown) : ArrowUpDown;
+  return (
+    <TableHead className={className}>
+      <button
+        type="button"
+        onClick={() => onClick(sortKey)}
+        className={cn(
+          "inline-flex items-center gap-1 text-xs font-medium hover:text-foreground transition-colors",
+          active ? "text-foreground" : "text-muted-foreground"
+        )}
+      >
+        {label}
+        <Icon className="h-3 w-3" />
+      </button>
+    </TableHead>
+  );
+}
+
