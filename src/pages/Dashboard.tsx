@@ -198,34 +198,6 @@ export function Dashboard() {
                 </ul>
               )}
             </CardContent>
-                    const linkedTask = td.tarefa_id ? state.tasks.find((t: any) => t.id === td.tarefa_id) : null;
-                    const project = linkedTask ? projects.find((p: any) => p.id === linkedTask.projeto_id) : null;
-                    return (
-                      <li key={td.id} className="flex items-center gap-3 rounded-md border border-dashed bg-card p-3">
-                        <ListChecks className="h-4 w-4 shrink-0 text-muted-foreground" />
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium">{td.titulo}</p>
-                          <div className="flex flex-wrap items-center gap-1 mt-0.5">
-                            {linkedTask && <span className="text-xs text-muted-foreground">{linkedTask.nome}</span>}
-                            {project && (
-                              <Badge style={{ backgroundColor: project.cor }} className="h-3.5 px-1 text-[9px] text-white leading-none">
-                                {project.nome}
-                              </Badge>
-                            )}
-                            <Badge variant="secondary" className="h-3.5 px-1 text-[9px] leading-none bg-amber-100 text-amber-700">
-                              TODO
-                            </Badge>
-                          </div>
-                        </div>
-                        <Badge variant="outline" className="font-mono text-xs shrink-0">
-                          Prazo hoje
-                        </Badge>
-                      </li>
-                    );
-                  })}
-                </ul>
-              )}
-            </CardContent>
           </Card>
 
           <Card>
