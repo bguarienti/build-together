@@ -41,10 +41,10 @@ declare module "@/utils/metrics" {
   export function calculateHoursByTaskType(tasks: any[], taskTypes: any[]): any[];
   export function calculateDelayMetrics(tasks: any[], schedules: any[]): {
     avaliadas: number;
-    atrasadas: number;
+    desviadas: number;
     no_prazo: number;
-    atraso_total_horas: number;
-    atraso_medio_horas: number;
+    desvio_total_horas: number;
+    desvio_medio_horas: number;
     desvio_pct: number;
   };
 }

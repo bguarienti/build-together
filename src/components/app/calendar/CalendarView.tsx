@@ -323,8 +323,8 @@ export function CalendarView() {
 
                                 // Sobreposição: tarefa anterior concluída que ultrapassou e invadiu este slot.
                                 // Encolhemos esta tarefa pela esquerda (alinhada à direita)
-                                // para que a extensão vermelha do atraso fique visível à esquerda.
-                                // Conta quantas tarefas anteriores concluídas com atraso se sobrepõem a este slot.
+                                // para que a extensão vermelha do desvio fique visível à esquerda.
+                                // Conta quantas tarefas anteriores concluídas com desvio se sobrepõem a este slot.
                                 let overlapCount = 0;
                                 state.schedules.forEach((prev: any) => {
                                   if (!prev.ativo || prev.data !== dateStr || prev.id === s.id) return;
@@ -346,7 +346,7 @@ export function CalendarView() {
 
                                 return (
                                   <div key={s.id} className="contents">
-                                    {/* Extensão vermelha indicando o atraso (renderizada atrás) */}
+                                    {/* Extensão vermelha indicando o desvio (renderizada atrás) */}
                                     {overrunH > 0 && (
                                       <div
                                         className="pointer-events-none absolute inset-x-0.5 rounded-b-md border border-t-0 border-destructive/60 bg-destructive/20"
@@ -355,7 +355,7 @@ export function CalendarView() {
                                           height: overrunH,
                                           zIndex: planeZ - 1,
                                         }}
-                                        title={`Atraso: +${overrunMin} min`}
+                                        title={`Desvio: +${overrunMin} min`}
                                       >
                                         <div className="flex h-full items-center justify-center px-1 text-[9px] font-semibold uppercase tracking-wide text-destructive">
                                           +{overrunMin}min

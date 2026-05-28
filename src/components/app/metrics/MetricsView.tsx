@@ -83,7 +83,7 @@ export function MetricsView() {
         </section>
       )}
 
-      {/* Atrasos: planejado vs realizado */}
+      {/* Desvios: planejado vs realizado */}
       <section>
         <header className="mb-3">
           <h2 className="text-base font-semibold">Planejado vs realizado</h2>
@@ -105,20 +105,20 @@ export function MetricsView() {
                 color="text-foreground"
               />
               <DelayStat
-                label="Atrasadas"
-                value={`${delayOverall.atrasadas} / ${delayOverall.avaliadas}`}
+                label="Desviadas"
+                value={`${delayOverall.desviadas} / ${delayOverall.avaliadas}`}
                 icon={TrendingUp}
                 color="text-amber-600"
               />
               <DelayStat
-                label="Atraso médio"
+                label="Desvio médio"
                 value={
-                  delayOverall.atraso_medio_horas >= 0
-                    ? `+${formatHoursMinutes(Math.abs(delayOverall.atraso_medio_horas))}`
-                    : `-${formatHoursMinutes(Math.abs(delayOverall.atraso_medio_horas))}`
+                  delayOverall.desvio_medio_horas >= 0
+                    ? `+${formatHoursMinutes(Math.abs(delayOverall.desvio_medio_horas))}`
+                    : `-${formatHoursMinutes(Math.abs(delayOverall.desvio_medio_horas))}`
                 }
-                icon={delayOverall.atraso_medio_horas >= 0 ? TrendingUp : TrendingDown}
-                color={delayOverall.atraso_medio_horas > 0 ? "text-amber-600" : "text-emerald-600"}
+                icon={delayOverall.desvio_medio_horas >= 0 ? TrendingUp : TrendingDown}
+                color={delayOverall.desvio_medio_horas > 0 ? "text-amber-600" : "text-emerald-600"}
               />
               <DelayStat
                 label="Desvio total"
