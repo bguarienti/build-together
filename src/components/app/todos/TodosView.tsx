@@ -33,7 +33,7 @@ export function TodosView() {
   const todos = getTodos();
   const tasks = getTasks();
 
-  const [filter, setFilter] = useState<StateFilter>("all");
+  const [filter, setFilter] = useState<StateFilter>("aberta");
   const [taskFilter, setTaskFilter] = useState<string>("all");
   const [showForm, setShowForm] = useState(false);
   const [titulo, setTitulo] = useState("");

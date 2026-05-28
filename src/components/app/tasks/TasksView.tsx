@@ -44,7 +44,7 @@ export function TasksView() {
   const projects = getProjects();
   const types = getTaskTypes();
 
-  const [filter, setFilter] = useState<StateFilter>("all");
+  const [filter, setFilter] = useState<StateFilter>("aberta");
   const [projFilter, setProjFilter] = useState<string>("all");
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [sortKey, setSortKey] = useState<SortKey>("schedule");
