@@ -83,14 +83,59 @@ export function TasksView() {
     return out;
   }, []);
 
+  const activeSchedulesByTask = useMemo(() => {
+    const map = new Map<string, any>();
+    state.schedules.forEach((s: any) => { if (s.ativo) map.set(s.tarefa_id, s); });
+    return map;
+  }, [state.schedules]);
+
   const filtered = useMemo(() => {
-    return tasks.filter((t: any) => {
+    const list = tasks.filter((t: any) => {
       if (filter !== "all" && t.estado !== filter) return false;
-      if (projFilter === "offenders") return !t.projeto_id;
-      if (projFilter !== "all" && t.projeto_id !== projFilter) return false;
+      if (projFilter === "offenders") {
+        if (t.projeto_id) return false;
+      } else if (projFilter !== "all" && t.projeto_id !== projFilter) return false;
+      if (typeFilter === "none") {
+        if (t.task_type_id) return false;
+      } else if (typeFilter !== "all" && t.task_type_id !== typeFilter) return false;
       return true;
     });
-  }, [tasks, filter, projFilter]);
+
+    const projName = (id: string | null) => (id ? projects.find((p: any) => p.id === id)?.nome ?? "" : "");
+    const typeName = (id: string | null) => (id ? types.find((tt: any) => tt.id === id)?.nome ?? "" : "");
+    const scheduleSortValue = (t: any) => {
+      const s = activeSchedulesByTask.get(t.id);
+      if (!s) return Number.POSITIVE_INFINITY;
+      return new Date(`${s.data}T${s.hora_inicio}:00`).getTime();
+    };
+    const stateOrder: Record<string, number> = { aberta: 0, agendada: 1, "concluída": 2, cancelada: 3 };
+
+    const getVal = (t: any): string | number => {
+      switch (sortKey) {
+        case "name": return (t.nome || "").toLowerCase();
+        case "project": return projName(t.projeto_id).toLowerCase();
+        case "type": return typeName(t.task_type_id).toLowerCase();
+        case "state": return stateOrder[t.estado] ?? 99;
+        case "schedule": return scheduleSortValue(t);
+        case "time": return t.tempo_gasto ?? -1;
+        default: return 0;
+      }
+    };
+
+    const sorted = [...list].sort((a, b) => {
+      const va = getVal(a); const vb = getVal(b);
+      if (va < vb) return sortDir === "asc" ? -1 : 1;
+      if (va > vb) return sortDir === "asc" ? 1 : -1;
+      return 0;
+    });
+    return sorted;
+  }, [tasks, filter, projFilter, typeFilter, sortKey, sortDir, projects, types, activeSchedulesByTask]);
+
+  const toggleSort = (key: SortKey) => {
+    if (sortKey === key) setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    else { setSortKey(key); setSortDir("asc"); }
+  };
+
 
   const resetForm = () => {
     setName(""); setProjectId("none"); setTypeId("none");
