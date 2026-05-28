@@ -309,12 +309,58 @@ export function CalendarView() {
                                 const type = task.task_type_id ? taskTypes.find((tt: any) => tt.id === task.task_type_id) : null;
                                 const color = type?.cor || getProjectColor(task.projeto_id);
                                 const dur = parseTime(s.hora_fim) - parseTime(s.hora_inicio);
-                                const blockH = Math.max(SLOT_H, (dur / SLOT_MINUTES) * SLOT_H) - 2;
+                                const plannedH = Math.max(SLOT_H, (dur / SLOT_MINUTES) * SLOT_H) - 2;
                                 const isDone = task.estado === "concluída";
                                 const isCanceled = task.estado === "cancelada";
                                 const isInactive = isDone || isCanceled;
+
+                                // Overrun: tempo gasto > planejado
+                                const actualMin = isDone && task.tempo_gasto
+                                  ? Math.round(task.tempo_gasto * 60)
+                                  : dur;
+                                const overrunMin = Math.max(0, actualMin - dur);
+                                const overrunH = (overrunMin / SLOT_MINUTES) * SLOT_H;
+
+                                // Offset: tarefa anterior concluída que ultrapassou e invadiu este slot.
+                                // Tarefa mais "velha" (que começou antes) fica em plano de fundo —
+                                // empurramos esta tarefa para baixo para que o atraso fique visível atrás.
+                                let offsetPx = 0;
+                                state.schedules.forEach((prev: any) => {
+                                  if (!prev.ativo || prev.data !== dateStr || prev.id === s.id) return;
+                                  const pStart = parseTime(prev.hora_inicio);
+                                  const pEnd = parseTime(prev.hora_fim);
+                                  if (pStart >= startMin) return;
+                                  const pTask = state.tasks.find((t: any) => t.id === prev.tarefa_id);
+                                  if (!pTask || pTask.estado !== "concluída" || !pTask.tempo_gasto) return;
+                                  const pActualEnd = pStart + Math.round(pTask.tempo_gasto * 60);
+                                  if (pActualEnd <= startMin || pEnd > startMin) return;
+                                  const overlap = pActualEnd - startMin;
+                                  const px = (overlap / SLOT_MINUTES) * SLOT_H;
+                                  if (px > offsetPx) offsetPx = px;
+                                });
+
+                                // z-index por "plano": mais velho fica atrás
+                                const planeZ = 10 + Math.min(50, Math.floor((startMin) / SLOT_MINUTES));
+
                                 return (
-                                  <Draggable key={s.id} draggableId={`schedule_${task.id}_${s.id}`} index={idx} isDragDisabled={isInactive}>
+                                  <div key={s.id} className="contents">
+                                    {/* Extensão vermelha indicando o atraso (renderizada atrás) */}
+                                    {overrunH > 0 && (
+                                      <div
+                                        className="pointer-events-none absolute inset-x-0.5 rounded-b-md border border-t-0 border-destructive/60 bg-destructive/20"
+                                        style={{
+                                          top: 1 + offsetPx + plannedH,
+                                          height: overrunH,
+                                          zIndex: planeZ - 1,
+                                        }}
+                                        title={`Atraso: +${overrunMin} min`}
+                                      >
+                                        <div className="flex h-full items-center justify-center px-1 text-[9px] font-semibold uppercase tracking-wide text-destructive">
+                                          +{overrunMin}min
+                                        </div>
+                                      </div>
+                                    )}
+                                    <Draggable draggableId={`schedule_${task.id}_${s.id}`} index={idx} isDragDisabled={isInactive}>
                                     {(p, snap) => (
                                       <div
                                         ref={p.innerRef}
@@ -322,15 +368,16 @@ export function CalendarView() {
                                         {...p.dragHandleProps}
                                         onClick={(e) => { e.stopPropagation(); setActionTask(task); }}
                                         className={cn(
-                                          "group absolute inset-x-0.5 z-10 cursor-pointer overflow-hidden rounded-md border-l-4 bg-background px-1.5 py-1 text-[11px] shadow-sm transition hover:bg-accent/50",
+                                          "group absolute inset-x-0.5 cursor-pointer overflow-hidden rounded-md border-l-4 bg-background px-1.5 py-1 text-[11px] shadow-sm transition hover:bg-accent/50",
                                           snap.isDragging && "ring-2 ring-primary",
                                           isDone && "opacity-60 line-through",
                                           isCanceled && "opacity-50 italic"
                                         )}
                                         style={{
-                                          top: 1,
-                                          height: snap.isDragging ? undefined : blockH,
+                                          top: snap.isDragging ? 1 : 1 + offsetPx,
+                                          height: snap.isDragging ? undefined : plannedH,
                                           borderLeftColor: color,
+                                          zIndex: planeZ,
                                           ...p.draggableProps.style,
                                         }}
                                       >
@@ -340,6 +387,11 @@ export function CalendarView() {
                                             <p className="truncate font-medium leading-tight">{task.nome}</p>
                                             {isDone && <Check className="h-3 w-3 shrink-0 text-emerald-600" />}
                                             {isCanceled && <Ban className="h-3 w-3 shrink-0 text-amber-600" />}
+                                            {overrunMin > 0 && (
+                                              <Badge variant="destructive" className="h-3 px-1 text-[9px] leading-none">
+                                                +{overrunMin}m
+                                              </Badge>
+                                            )}
                                           </div>
                                           <div className="flex flex-wrap items-center gap-1">
                                             <p className="font-mono text-[10px] text-muted-foreground">
@@ -369,7 +421,8 @@ export function CalendarView() {
                                         </div>
                                       </div>
                                     )}
-                                  </Draggable>
+                                    </Draggable>
+                                  </div>
                                 );
                               })}
                               {isEmpty && (
