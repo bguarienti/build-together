@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useAppContext } from "@/hooks/useAppContext";
 import { Topbar } from "@/components/app/Topbar";
@@ -5,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CalendarDays, AlertTriangle, CheckCircle2, Clock, ListTodo, FolderKanban, ArrowRight, ListChecks } from "lucide-react";
-import { formatDate, formatDateBR } from "@/utils/date";
+import { formatDate, formatDateBR, addDays, getWeekDates } from "@/utils/date";
 import { cn } from "@/lib/utils";
 
 const STATE_VARIANT: Record<string, { label: string; className: string }> = {
@@ -22,11 +23,35 @@ export function Dashboard() {
   const offenders = getOffenderTasks();
 
   const today = formatDate(new Date());
-  const todaySchedules = state.schedules
-    .filter((s: any) => s.ativo && s.data === today)
-    .sort((a: any, b: any) => a.hora_inicio.localeCompare(b.hora_inicio));
+  const [periodo, setPeriodo] = useState<"hoje" | "amanha" | "semana">("hoje");
 
-  const todayTodos = getTodosByDeadline(today);
+  const todayDate = new Date();
+  const todayStr = formatDate(todayDate);
+  const tomorrowStr = formatDate(addDays(todayDate, 1));
+  const weekDates = getWeekDates(todayDate).map(formatDate);
+  const restOfWeekDates = weekDates.filter((d) => d !== todayStr && d !== tomorrowStr);
+
+  const dateFilter =
+    periodo === "hoje"
+      ? [todayStr]
+      : periodo === "amanha"
+      ? [tomorrowStr]
+      : restOfWeekDates;
+
+  const filteredSchedules = state.schedules
+    .filter((s: any) => s.ativo && dateFilter.includes(s.data))
+    .sort((a: any, b: any) => a.data.localeCompare(b.data) || a.hora_inicio.localeCompare(b.hora_inicio));
+
+  const filteredTodos = state.todos.filter(
+    (td: any) => td.ativo && td.estado === "aberta" && dateFilter.includes(td.prazo)
+  );
+
+  const periodoLabel =
+    periodo === "hoje"
+      ? "Hoje"
+      : periodo === "amanha"
+      ? "Amanhã"
+      : "Resto da Semana";
 
   const stats = {
     open: tasks.filter((t: any) => t.estado === "aberta").length,
@@ -56,24 +81,52 @@ export function Dashboard() {
               <div>
                 <CardTitle className="flex items-center gap-2 text-base">
                   <Clock className="h-4 w-4 text-primary" />
-                  Agenda de hoje
+                  Agenda — {periodoLabel}
                 </CardTitle>
-                <CardDescription>{todaySchedules.length} bloco(s) + {todayTodos.length} TODO(s)</CardDescription>
+                <CardDescription>{filteredSchedules.length} bloco(s) + {filteredTodos.length} TODO(s)</CardDescription>
               </div>
-              <Button asChild variant="ghost" size="sm">
-                <Link to="/calendar">
-                  Abrir calendário <ArrowRight className="ml-1 h-3 w-3" />
-                </Link>
-              </Button>
+              <div className="flex items-center gap-2">
+                <div className="flex rounded-md border bg-muted p-0.5">
+                  <Button
+                    variant={periodo === "hoje" ? "secondary" : "ghost"}
+                    size="sm"
+                    className="h-7 text-xs px-2"
+                    onClick={() => setPeriodo("hoje")}
+                  >
+                    Hoje
+                  </Button>
+                  <Button
+                    variant={periodo === "amanha" ? "secondary" : "ghost"}
+                    size="sm"
+                    className="h-7 text-xs px-2"
+                    onClick={() => setPeriodo("amanha")}
+                  >
+                    Amanhã
+                  </Button>
+                  <Button
+                    variant={periodo === "semana" ? "secondary" : "ghost"}
+                    size="sm"
+                    className="h-7 text-xs px-2"
+                    onClick={() => setPeriodo("semana")}
+                  >
+                    Resto da Semana
+                  </Button>
+                </div>
+                <Button asChild variant="ghost" size="sm">
+                  <Link to="/calendar">
+                    Abrir calendário <ArrowRight className="ml-1 h-3 w-3" />
+                  </Link>
+                </Button>
+              </div>
             </CardHeader>
             <CardContent>
-              {todaySchedules.length === 0 && todayTodos.length === 0 ? (
+              {filteredSchedules.length === 0 && filteredTodos.length === 0 ? (
                 <p className="rounded-md border border-dashed py-8 text-center text-sm text-muted-foreground">
-                  Nada agendado para hoje.
+                  Nada agendado para {periodoLabel.toLowerCase()}.
                 </p>
               ) : (
                 <ul className="space-y-2">
-                  {todaySchedules.map((s: any) => {
+                  {filteredSchedules.map((s: any) => {
                     const task = state.tasks.find((t: any) => t.id === s.tarefa_id);
                     const project = projects.find((p: any) => p.id === task?.projeto_id);
                     const type = task?.task_type_id ? state.taskTypes.find((t: any) => t.id === task.task_type_id) : null;
@@ -96,13 +149,20 @@ export function Dashboard() {
                             )}
                           </div>
                         </div>
-                        <Badge variant="outline" className="font-mono text-xs shrink-0">
-                          {s.hora_inicio}–{s.hora_fim}
-                        </Badge>
+                        <div className="flex flex-col items-end gap-0.5 shrink-0">
+                          {periodo !== "hoje" && (
+                            <span className="text-[10px] text-muted-foreground">
+                              {formatDateBR(new Date(s.data + "T12:00:00"))}
+                            </span>
+                          )}
+                          <Badge variant="outline" className="font-mono text-xs">
+                            {s.hora_inicio}–{s.hora_fim}
+                          </Badge>
+                        </div>
                       </li>
                     );
                   })}
-                  {todayTodos.map((td: any) => {
+                  {filteredTodos.map((td: any) => {
                     const linkedTask = td.tarefa_id ? state.tasks.find((t: any) => t.id === td.tarefa_id) : null;
                     const project = linkedTask ? projects.find((p: any) => p.id === linkedTask.projeto_id) : null;
                     return (
@@ -122,9 +182,16 @@ export function Dashboard() {
                             </Badge>
                           </div>
                         </div>
-                        <Badge variant="outline" className="font-mono text-xs shrink-0">
-                          Prazo hoje
-                        </Badge>
+                        <div className="flex flex-col items-end gap-0.5 shrink-0">
+                          {periodo !== "hoje" && (
+                            <span className="text-[10px] text-muted-foreground">
+                              {formatDateBR(new Date(td.prazo + "T12:00:00"))}
+                            </span>
+                          )}
+                          <Badge variant="outline" className="font-mono text-xs">
+                            Prazo {periodo === "hoje" ? "hoje" : periodoLabel.toLowerCase()}
+                          </Badge>
+                        </div>
                       </li>
                     );
                   })}
