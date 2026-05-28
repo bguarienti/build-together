@@ -1,6 +1,8 @@
 import { Routes, Route, Link, useLocation } from "react-router-dom";
 import { useEffect } from "react";
 import { AppContextProvider } from "./context/AppContext.jsx";
+import { ThemeProvider } from "./hooks/useTheme";
+
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app/AppSidebar";
 import { Toaster } from "@/components/ui/sonner";
@@ -51,25 +53,28 @@ function NotFound() {
 
 export default function App() {
   return (
-    <AppContextProvider>
-      <TitleSync />
-      <SidebarProvider>
-        <AppSidebar />
-        <SidebarInset>
-          <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/tasks" element={<TasksPage />} />
-            <Route path="/calendar" element={<CalendarPage />} />
-            <Route path="/projects" element={<ProjectsPage />} />
-            <Route path="/types" element={<TypesPage />} />
-            <Route path="/metrics" element={<MetricsPage />} />
-            <Route path="/todos" element={<TodosPage />} />
-            <Route path="/google-calendar" element={<GoogleCalendarPage />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </SidebarInset>
-        <Toaster richColors position="top-right" />
-      </SidebarProvider>
-    </AppContextProvider>
+    <ThemeProvider>
+      <AppContextProvider>
+        <TitleSync />
+        <SidebarProvider>
+          <AppSidebar />
+          <SidebarInset>
+            <Routes>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/tasks" element={<TasksPage />} />
+              <Route path="/calendar" element={<CalendarPage />} />
+              <Route path="/projects" element={<ProjectsPage />} />
+              <Route path="/types" element={<TypesPage />} />
+              <Route path="/metrics" element={<MetricsPage />} />
+              <Route path="/todos" element={<TodosPage />} />
+              <Route path="/google-calendar" element={<GoogleCalendarPage />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </SidebarInset>
+          <Toaster richColors position="top-right" />
+        </SidebarProvider>
+      </AppContextProvider>
+    </ThemeProvider>
   );
 }
+

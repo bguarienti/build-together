@@ -1,10 +1,11 @@
-import { Download } from "lucide-react";
+import { Download, Moon, Sun } from "lucide-react";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { useAppContext } from "@/hooks/useAppContext";
 import { exportToJSON } from "@/utils/export";
 import { toast } from "sonner";
+import { useTheme } from "@/hooks/useTheme";
 
 interface TopbarProps {
   title: string;
@@ -13,6 +14,7 @@ interface TopbarProps {
 
 export function Topbar({ title, description }: TopbarProps) {
   const { state } = useAppContext();
+  const { theme, toggle } = useTheme();
 
   const handleExport = () => {
     try {
@@ -32,6 +34,9 @@ export function Topbar({ title, description }: TopbarProps) {
         {description && <p className="text-xs text-muted-foreground">{description}</p>}
       </div>
       <div className="ml-auto flex items-center gap-2">
+        <Button variant="ghost" size="icon" onClick={toggle} aria-label="Alternar tema">
+          {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+        </Button>
         <Button variant="outline" size="sm" onClick={handleExport}>
           <Download className="mr-2 h-4 w-4" />
           Exportar JSON
@@ -40,3 +45,4 @@ export function Topbar({ title, description }: TopbarProps) {
     </header>
   );
 }
+
