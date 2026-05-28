@@ -321,10 +321,10 @@ export function CalendarView() {
                                 const overrunMin = Math.max(0, actualMin - dur);
                                 const overrunH = (overrunMin / SLOT_MINUTES) * SLOT_H;
 
-                                // Offset: tarefa anterior concluída que ultrapassou e invadiu este slot.
-                                // Tarefa mais "velha" (que começou antes) fica em plano de fundo —
-                                // empurramos esta tarefa para baixo para que o atraso fique visível atrás.
-                                let offsetPx = 0;
+                                // Sobreposição: tarefa anterior concluída que ultrapassou e invadiu este slot.
+                                // Encolhemos esta tarefa pela esquerda (alinhada à direita)
+                                // para que a extensão vermelha do atraso fique visível à esquerda.
+                                let overlapMin = 0;
                                 state.schedules.forEach((prev: any) => {
                                   if (!prev.ativo || prev.data !== dateStr || prev.id === s.id) return;
                                   const pStart = parseTime(prev.hora_inicio);
@@ -334,10 +334,11 @@ export function CalendarView() {
                                   if (!pTask || pTask.estado !== "concluída" || !pTask.tempo_gasto) return;
                                   const pActualEnd = pStart + Math.round(pTask.tempo_gasto * 60);
                                   if (pActualEnd <= startMin || pEnd > startMin) return;
-                                  const overlap = pActualEnd - startMin;
-                                  const px = (overlap / SLOT_MINUTES) * SLOT_H;
-                                  if (px > offsetPx) offsetPx = px;
+                                  const ov = pActualEnd - startMin;
+                                  if (ov > overlapMin) overlapMin = ov;
                                 });
+                                // Indentação esquerda proporcional ao atraso (cap em ~40% do bloco)
+                                const indentPct = Math.min(40, (overlapMin / SLOT_MINUTES) * 12);
 
                                 // z-index por "plano": mais velho fica atrás
                                 const planeZ = 10 + Math.min(50, Math.floor((startMin) / SLOT_MINUTES));
@@ -349,7 +350,7 @@ export function CalendarView() {
                                       <div
                                         className="pointer-events-none absolute inset-x-0.5 rounded-b-md border border-t-0 border-destructive/60 bg-destructive/20"
                                         style={{
-                                          top: 1 + offsetPx + plannedH,
+                                          top: 1 + plannedH,
                                           height: overrunH,
                                           zIndex: planeZ - 1,
                                         }}
@@ -368,13 +369,15 @@ export function CalendarView() {
                                         {...p.dragHandleProps}
                                         onClick={(e) => { e.stopPropagation(); setActionTask(task); }}
                                         className={cn(
-                                          "group absolute inset-x-0.5 cursor-pointer overflow-hidden rounded-md border-l-4 bg-background px-1.5 py-1 text-[11px] shadow-sm transition hover:bg-accent/50",
+                                          "group absolute right-0.5 cursor-pointer overflow-hidden rounded-md border-l-4 bg-background px-1.5 py-1 text-[11px] shadow-sm transition hover:bg-accent/50",
                                           snap.isDragging && "ring-2 ring-primary",
                                           isDone && "opacity-60 line-through",
                                           isCanceled && "opacity-50 italic"
                                         )}
                                         style={{
-                                          top: snap.isDragging ? 1 : 1 + offsetPx,
+                                          top: 1,
+                                          left: snap.isDragging ? undefined : `${indentPct}%`,
+                                          right: snap.isDragging ? undefined : 2,
                                           height: snap.isDragging ? undefined : plannedH,
                                           borderLeftColor: color,
                                           zIndex: planeZ,
