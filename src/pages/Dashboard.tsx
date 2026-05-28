@@ -23,11 +23,35 @@ export function Dashboard() {
   const offenders = getOffenderTasks();
 
   const today = formatDate(new Date());
-  const todaySchedules = state.schedules
-    .filter((s: any) => s.ativo && s.data === today)
-    .sort((a: any, b: any) => a.hora_inicio.localeCompare(b.hora_inicio));
+  const [periodo, setPeriodo] = useState<"hoje" | "amanha" | "semana">("hoje");
 
-  const todayTodos = getTodosByDeadline(today);
+  const todayDate = new Date();
+  const todayStr = formatDate(todayDate);
+  const tomorrowStr = formatDate(addDays(todayDate, 1));
+  const weekDates = getWeekDates(todayDate).map(formatDate);
+  const restOfWeekDates = weekDates.filter((d) => d !== todayStr && d !== tomorrowStr);
+
+  const dateFilter =
+    periodo === "hoje"
+      ? [todayStr]
+      : periodo === "amanha"
+      ? [tomorrowStr]
+      : restOfWeekDates;
+
+  const filteredSchedules = state.schedules
+    .filter((s: any) => s.ativo && dateFilter.includes(s.data))
+    .sort((a: any, b: any) => a.data.localeCompare(b.data) || a.hora_inicio.localeCompare(b.hora_inicio));
+
+  const filteredTodos = state.todos.filter(
+    (td: any) => td.ativo && td.estado === "aberta" && dateFilter.includes(td.prazo)
+  );
+
+  const periodoLabel =
+    periodo === "hoje"
+      ? "Hoje"
+      : periodo === "amanha"
+      ? "Amanhã"
+      : "Resto da Semana";
 
   const stats = {
     open: tasks.filter((t: any) => t.estado === "aberta").length,
