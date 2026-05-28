@@ -321,14 +321,15 @@ export function TasksView() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[35%]">Tarefa</TableHead>
-                <TableHead>Projeto</TableHead>
-                <TableHead>Tipo</TableHead>
-                <TableHead>Estado</TableHead>
-                <TableHead>Horário</TableHead>
-                <TableHead>Tempo</TableHead>
+                <SortableHead label="Tarefa" sortKey="name" current={sortKey} dir={sortDir} onClick={toggleSort} className="w-[32%]" />
+                <SortableHead label="Projeto" sortKey="project" current={sortKey} dir={sortDir} onClick={toggleSort} />
+                <SortableHead label="Tipo" sortKey="type" current={sortKey} dir={sortDir} onClick={toggleSort} />
+                <SortableHead label="Estado" sortKey="state" current={sortKey} dir={sortDir} onClick={toggleSort} />
+                <SortableHead label="Agendamento" sortKey="schedule" current={sortKey} dir={sortDir} onClick={toggleSort} />
+                <SortableHead label="Tempo" sortKey="time" current={sortKey} dir={sortDir} onClick={toggleSort} />
                 <TableHead className="text-right">Ações</TableHead>
               </TableRow>
+
             </TableHeader>
             <TableBody>
               {filtered.length === 0 ? (
