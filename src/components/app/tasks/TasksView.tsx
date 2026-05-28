@@ -27,6 +27,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { HoursMinutesInput, toDecimalHours, formatHoursMinutes } from "@/components/app/HoursMinutesInput";
 
 type StateFilter = "all" | "aberta" | "agendada" | "concluída" | "cancelada";
+type SortKey = "name" | "project" | "type" | "state" | "schedule" | "time";
+type SortDir = "asc" | "desc";
+
 
 const STATE_VARIANT: Record<string, { label: string; className: string }> = {
   aberta: { label: "Aberta", className: "bg-slate-100 text-slate-700" },
