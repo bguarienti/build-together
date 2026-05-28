@@ -43,7 +43,11 @@ export function TasksView() {
 
   const [filter, setFilter] = useState<StateFilter>("all");
   const [projFilter, setProjFilter] = useState<string>("all");
+  const [typeFilter, setTypeFilter] = useState<string>("all");
+  const [sortKey, setSortKey] = useState<SortKey>("schedule");
+  const [sortDir, setSortDir] = useState<SortDir>("asc");
   const [showForm, setShowForm] = useState(false);
+
   const [name, setName] = useState("");
   const [projectId, setProjectId] = useState<string>("none");
   const [typeId, setTypeId] = useState<string>("none");
